@@ -1,4 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { QdrantClient } from '@qdrant/js-client-rest';
+import { v4 as uuidv4 } from 'uuid';
+
+// Initialize Qdrant Client for vector database integration
+const qdrant = new QdrantClient({
+  url: process.env.QDRANT_URL || 'http://localhost:6333',
+  apiKey: process.env.QDRANT_API_KEY,
+});
+
+async function logTranslationVector(original: string, translated: string, fromLang: string, targetLang: string) {
+  try {
+    // Ensure collection exists (for dev purposes, usually done on setup)
+    try {
+      await qdrant.getCollection("translations");
+    } catch {
+      await qdrant.createCollection("translations", { vectors: { size: 10, distance: 'Cosine' } });
+    }
+    // Upload translation and mock vectors
+    await qdrant.upsert("translations", {
+      wait: false,
+      points: [
+        {
+          id: uuidv4(),
+          vector: Array.from({ length: 10 }, () => Math.random() - 0.5), // Mock embeddings since we lack an embedding model here
+          payload: { original, translated, fromLang, targetLang, timestamp: new Date().toISOString() }
+        }
+      ]
+    });
+  } catch (err) {
+    console.error("[Qdrant] vector logging error:", err);
+  }
+}
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface AgentRequest {
@@ -130,6 +162,9 @@ export async function POST(req: NextRequest) {
   if (!translated) translated = await translateMyMemory(input, fromLang, targetLang);
 
   if (translated) {
+    // Log to Qdrant vector database
+    await logTranslationVector(input, translated, fromLang, targetLang);
+
     return NextResponse.json({
       original: input,
       corrected: input,

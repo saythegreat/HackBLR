@@ -1,7 +1,8 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Mic, Send, Play, Pause, RefreshCw, Copy, CheckCheck, AlertCircle, X } from 'lucide-react';
+import { Mic, Send, Play, Pause, RefreshCw, Copy, CheckCheck, AlertCircle, X, PhoneCall, PhoneOff } from 'lucide-react';
+import Vapi from '@vapi-ai/web';
 import { useVoice } from '@/context/VoiceContext';
 import { getUIStrings } from '@/lib/uiTranslations';
 import type { Message } from '@/lib/types';
@@ -196,6 +197,31 @@ export default function ConversationScreen() {
   const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Vapi integration
+  const vapi = useRef<any>(null);
+  const [isVapiActive, setIsVapiActive] = useState(false);
+
+  useEffect(() => {
+    vapi.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "dummy-key");
+    const onCallStart = () => setIsVapiActive(true);
+    const onCallEnd = () => setIsVapiActive(false);
+
+    vapi.current.on('call-start', onCallStart);
+    vapi.current.on('call-end', onCallEnd);
+
+    return () => {
+      vapi.current?.stop();
+    };
+  }, []);
+
+  const toggleVapi = () => {
+    if (isVapiActive) {
+      vapi.current?.stop();
+    } else {
+      vapi.current?.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "dummy-assistant");
+    }
+  };
+
   const isProcessing = voiceState === 'processing' || voiceState === 'translating';
 
   useEffect(() => {
@@ -245,16 +271,33 @@ export default function ConversationScreen() {
               </span>
             </div>
           </div>
-          <motion.button
-            id="clear-conversation"
-            whileTap={{ scale: 0.9 }}
-            onClick={clearMessages}
-            className="btn-secondary"
-            style={{ padding: '8px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
-          >
-            <RefreshCw size={13} />
-            {ui.clearBtn}
-          </motion.button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <motion.button
+              id="vapi-call"
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleVapi}
+              className="btn-secondary"
+              style={{
+                padding: '8px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6,
+                background: isVapiActive ? 'rgba(239,68,68,0.2)' : 'rgba(124,58,237,0.2)',
+                color: isVapiActive ? '#f87171' : '#a78bfa',
+                borderColor: isVapiActive ? 'rgba(239,68,68,0.3)' : 'rgba(124,58,237,0.3)'
+              }}
+            >
+              {isVapiActive ? <PhoneOff size={13} /> : <PhoneCall size={13} />}
+              {isVapiActive ? 'End Vapi' : 'Vapi AI Call'}
+            </motion.button>
+            <motion.button
+              id="clear-conversation"
+              whileTap={{ scale: 0.9 }}
+              onClick={clearMessages}
+              className="btn-secondary"
+              style={{ padding: '8px 12px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <RefreshCw size={13} />
+              {ui.clearBtn}
+            </motion.button>
+          </div>
         </div>
 
         {/* Error banner */}
