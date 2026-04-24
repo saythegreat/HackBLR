@@ -99,6 +99,17 @@ export default function SettingsScreen() {
   const { user, sessions, totalMinutes, totalLanguages, logout } = useAuth();
   const { fromLang, toLang, setFromLang, setToLang, sessionCount } = useVoice();
   const ui = getUIStrings(fromLang.label);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleUpdateProfile = async () => {
+    if (!editName.trim()) return;
+    setIsSaving(true);
+    await updateUser({ name: editName });
+    setIsSaving(false);
+    setIsEditing(false);
+  };
 
   const [selectedVoice, setSelectedVoiceState] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -156,31 +167,75 @@ export default function SettingsScreen() {
               {user?.avatar ?? '👤'}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                <h2 style={{ fontSize: 18, fontWeight: 700 }}>{user?.name ?? 'Guest'}</h2>
-                <span className="pill pill-purple">{user?.plan ?? 'Free'}</span>
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>{user?.email ?? ''}</div>
-              <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-                {[
-                  { label: ui.statSessions,  value: displaySessionCount.toString() },
-                  { label: ui.statLanguages, value: displayLanguages.toString() },
-                  { label: ui.profileTab === 'Profile' ? 'Minutes' : 'मिनट',   value: displayMinutes.toString() },
-                ].map(s => (
-                  <div key={s.label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: '#c084fc' }}>{s.value}</div>
-                    <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{s.label}</div>
+              {isEditing ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    autoFocus
+                    style={{
+                      background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                      borderRadius: 8, padding: '6px 10px', color: 'white', fontSize: 16, outline: 'none',
+                      width: '100%'
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={handleUpdateProfile}
+                      disabled={isSaving}
+                      style={{
+                        padding: '4px 12px', borderRadius: 8, border: 'none', background: '#c084fc',
+                        color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                        opacity: isSaving ? 0.6 : 1
+                      }}
+                    >
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => { setIsEditing(false); setEditName(user?.name || ''); }}
+                      style={{
+                        padding: '4px 12px', borderRadius: 8, border: 'none', background: 'rgba(255,255,255,0.1)',
+                        color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer'
+                      }}
+                    >
+                      Cancel
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 700 }}>{user?.name ?? 'Guest'}</h2>
+                    <span className="pill pill-purple">{user?.plan ?? 'Free'}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>{user?.email ?? ''}</div>
+                </>
+              )}
+              {!isEditing && (
+                <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
+                  {[
+                    { label: ui.statSessions,  value: displaySessionCount.toString() },
+                    { label: ui.statLanguages, value: displayLanguages.toString() },
+                    { label: ui.profileTab === 'Profile' ? 'Minutes' : 'मिनट',   value: displayMinutes.toString() },
+                  ].map(s => (
+                    <div key={s.label} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#c084fc' }}>{s.value}</div>
+                      <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <motion.button
-              id="edit-profile"
-              whileTap={{ scale: 0.9 }}
-              style={{ width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              <Edit2 size={14} />
-            </motion.button>
+            {!isEditing && (
+              <motion.button
+                id="edit-profile"
+                onClick={() => setIsEditing(true)}
+                whileTap={{ scale: 0.9 }}
+                style={{ width: 32, height: 32, borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Edit2 size={14} />
+              </motion.button>
+            )}
           </div>
         </div>
 

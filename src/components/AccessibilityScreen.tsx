@@ -115,7 +115,7 @@ export default function AccessibilityScreen() {
   ], [t]);
 
   const [toggles, setToggles] = useState<Record<string, boolean>>({});
-  const [activeCategory, setActiveCategory] = useState(t.catAll);
+  const [activeCategory, setActiveCategory] = useState('All');
 
   // Initialize toggles from defaults
   useEffect(() => {
@@ -137,8 +137,7 @@ export default function AccessibilityScreen() {
 
   // Handle lang change for category reset
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setActiveCategory(t.catAll);
+    setActiveCategory('All');
   }, [t.catAll]);
 
   useEffect(() => {
@@ -169,9 +168,16 @@ export default function AccessibilityScreen() {
     }
   }, [toggles]);
 
+  const categoryMap: Record<string, string> = {
+    'All': t.catAll,
+    'Voice': t.catVoice,
+    'Display': t.catDisplay,
+    'Access': t.catAccess
+  };
+
   const flipToggle = (id: string) => setToggles(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const filteredOptions = activeCategory === t.catAll ? OPTIONS : OPTIONS.filter(o => o.category === activeCategory);
+  const filteredOptions = activeCategory === 'All' ? OPTIONS : OPTIONS.filter(o => o.category === categoryMap[activeCategory]);
   const enabledCount = Object.values(toggles).filter(Boolean).length;
 
   return (
@@ -195,22 +201,21 @@ export default function AccessibilityScreen() {
         </div>
 
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
-          {categories.map(cat => (
+          {Object.keys(categoryMap).map(catKey => (
             <motion.button
-              key={cat}
+              key={catKey}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setActiveCategory(cat)}
+              onClick={() => setActiveCategory(catKey)}
               style={{
                 padding: '6px 14px', borderRadius: 10, border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
                 fontWeight: 600, fontSize: 12, transition: 'all 0.25s',
-                background: activeCategory === cat ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
-                color: activeCategory === cat ? '#c084fc' : 'var(--text-muted)',
-                boxShadow: activeCategory === cat ? '0 0 12px rgba(124,58,237,0.2)' : 'none',
+                background: activeCategory === catKey ? 'rgba(124,58,237,0.2)' : 'rgba(255,255,255,0.05)',
+                color: activeCategory === catKey ? '#c084fc' : 'var(--text-muted)',
+                boxShadow: activeCategory === catKey ? '0 0 12px rgba(124,58,237,0.2)' : 'none',
               }}
             >
-              {cat}
+              {categoryMap[catKey]}
             </motion.button>
-          ))}
         </div>
       </motion.div>
 
