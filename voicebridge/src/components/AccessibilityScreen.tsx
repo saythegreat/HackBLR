@@ -128,11 +128,9 @@ export default function AccessibilityScreen() {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setToggles({ ...initial, ...parsed });
       } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToggles(initial);
       }
     } catch {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToggles(initial);
     }
   }, [OPTIONS]);

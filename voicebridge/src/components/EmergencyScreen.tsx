@@ -1,6 +1,6 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTTS } from '@/hooks/useTTS';
 import { useVoice } from '@/context/VoiceContext';
 import { Phone, MapPin, Mic, AlertTriangle, Shield, Volume2, MessageSquare, Lock } from 'lucide-react';
@@ -43,6 +43,7 @@ export default function EmergencyScreen() {
   
   useEffect(() => {
     if (fromLang?.code) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveLang(fromLang.code);
     }
   }, [fromLang?.code]);
