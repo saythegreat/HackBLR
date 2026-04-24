@@ -10,7 +10,7 @@ import { getUIStrings } from '@/lib/uiTranslations';
 type Mode = 'login' | 'signup';
 
 export default function LoginScreen() {
-  const { login, signup, verifyCode } = useAuth();
+  const { login, signup, verifyCode, testModeHint } = useAuth();
   const { fromLang, setFromLang } = useVoice();
   const ui = getUIStrings(fromLang.label);
   const [mode, setMode] = useState<Mode | 'verify'>('login');
@@ -21,6 +21,7 @@ export default function LoginScreen() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +29,8 @@ export default function LoginScreen() {
     setLoading(true);
 
     const result = mode === 'login'
-      ? await login(email, password)
-      : await signup(name, email, password);
+      ? await login(email, password, rememberMe)
+      : await signup(name, email, password, rememberMe);
 
     setLoading(false);
     if (!result.ok) {
@@ -201,6 +202,11 @@ export default function LoginScreen() {
                       <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                         {ui.loginSentCode} <b>{email}</b>
                       </p>
+                      {testModeHint && (
+                        <p style={{ fontSize: 13, color: '#fcd34d', marginTop: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
+                          {testModeHint}
+                        </p>
+                      )}
                     </div>
                     
                     <InputField

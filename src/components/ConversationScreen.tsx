@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, Send, Play, Pause, RefreshCw, Copy, CheckCheck, AlertCircle, X, PhoneCall, PhoneOff } from 'lucide-react';
 import Vapi from '@vapi-ai/web';
 import { useVoice } from '@/context/VoiceContext';
+import { useAuth } from '@/context/AuthContext';
 import { getUIStrings } from '@/lib/uiTranslations';
 import type { Message } from '@/lib/types';
 
@@ -39,7 +40,7 @@ function MessageBubble({
   onPlay: (text: string, lang: string) => void;
   onCopy: (text: string) => void;
   ui: ReturnType<typeof getUIStrings>;
-  user: any;
+  user: { name: string; avatar: string; email: string } | null;
 }) {
   const isUser = msg.role === 'user';
   const isLatest = index === totalCount - 1;

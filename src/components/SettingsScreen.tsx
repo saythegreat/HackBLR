@@ -97,7 +97,7 @@ function LanguageSettingsTab({ fromLang, toLang, setFromLang, setToLang, ui }: a
 }
 
 export default function SettingsScreen() {
-  const { user, sessions, totalMinutes, totalLanguages, logout } = useAuth();
+  const { user, sessions, totalMinutes, totalLanguages, logout, updateUser } = useAuth();
   const { fromLang, toLang, setFromLang, setToLang, sessionCount } = useVoice();
   const ui = getUIStrings(fromLang.label);
   const [isEditing, setIsEditing] = useState(false);

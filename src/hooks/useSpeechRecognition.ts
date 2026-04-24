@@ -132,7 +132,9 @@ export function useSpeechRecognition({
           msg = 'No microphone found. Please connect one.';
           break;
         case 'network':
-          msg = 'Network error during recognition. Check your connection.';
+          msg = window.location.protocol === 'https:' 
+            ? 'Network error during recognition. Check your connection.' 
+            : 'Recognition requires HTTPS on most devices. Please use a secure connection.';
           break;
         case 'aborted':
           return; // user-triggered — no error

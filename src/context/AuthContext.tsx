@@ -37,13 +37,14 @@ interface AuthContextValue {
   sessions: SessionRecord[];
   totalMinutes: number;
   totalLanguages: number;
-  login: (email: string, password: string) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
-  signup: (name: string, email: string, password: string) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
+  login: (email: string, password: string, remember?: boolean) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
+  signup: (name: string, email: string, password: string, remember?: boolean) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
   verifyCode: (code: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   addSession: (session: Omit<SessionRecord, 'id' | 'time' | 'timestamp'>) => void;
   updateUser: (fields: Partial<UserProfile>) => Promise<void>;
   isAuthReady: boolean;
+  testModeHint: string | null;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -89,10 +90,21 @@ function readCachedUser(): UserProfile | null {
   } catch { return null; }
 }
 
-function writeCachedUser(u: UserProfile | null) {
+function writeCachedUser(u: UserProfile | null, remember: boolean = true) {
   try {
-    if (u) localStorage.setItem(AUTH_CACHE_KEY, JSON.stringify(u));
-    else localStorage.removeItem(AUTH_CACHE_KEY);
+    if (u) {
+      const data = JSON.stringify(u);
+      if (remember) {
+        localStorage.setItem(AUTH_CACHE_KEY, data);
+        sessionStorage.removeItem(AUTH_CACHE_KEY);
+      } else {
+        sessionStorage.setItem(AUTH_CACHE_KEY, data);
+        localStorage.removeItem(AUTH_CACHE_KEY);
+      }
+    } else {
+      localStorage.removeItem(AUTH_CACHE_KEY);
+      sessionStorage.removeItem(AUTH_CACHE_KEY);
+    }
   } catch { /* ignore */ }
 }
 
@@ -107,8 +119,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [user, setUser] = useState<UserProfile | null>(() => {
     if (typeof window === 'undefined') return null;
-    return readCachedUser();
+    return readCachedUser() || (() => {
+      try {
+        const raw = sessionStorage.getItem(AUTH_CACHE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    })();
   });
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    const val = localStorage.getItem('vb_remember_me');
+    return val === null ? true : val === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('vb_remember_me', rememberMe.toString());
+  }, [rememberMe]);
   const [sessions, setSessions] = useState<SessionRecord[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -127,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !!readCachedUser(); // instant ready for returning users
   });
 
-  const [pendingSignup, setPendingSignup] = useState<{ name: string; email: string; password: string; otp: string } | null>(null);
+  const [pendingSignup, setPendingSignup] = useState<{ name: string; email: string; password: string; otp: string; isTestMode?: boolean } | null>(null);
 
   // ── OPTIMIZATION: Supabase auth sync happens in background ────────────────
   // For new/returning users: validate session in background without blocking UI
@@ -165,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const u = buildUser(session.user);
           setUser(u);
           setIsLoggedIn(true);
-          writeCachedUser(u);
+          writeCachedUser(u, rememberMe);
 
           // Fetch DB sessions lazily in a detached async IIFE — fire & forget
           if (event === 'SIGNED_IN') {
@@ -209,7 +235,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // ── Auth actions ──────────────────────────────────────────────────────────
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, remember: boolean = true) => {
+      setRememberMe(remember);
       if (!supabase) return { ok: false, error: 'Supabase configuration missing.' };
       try {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -222,7 +249,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signup = useCallback(
-    async (name: string, email: string, password: string) => {
+    async (name: string, email: string, password: string, remember: boolean = true) => {
+      setRememberMe(remember);
       if (!supabase) return { ok: false, error: 'Supabase configuration missing.' };
       try {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -231,11 +259,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, otp }),
         });
+        const d = await res.json().catch(() => ({}));
         if (!res.ok) {
-          const d = await res.json();
-          return { ok: false, error: d.error || 'Failed to send verification email.' };
+          // ─── HACKATHON RESILIENCE BYPASS ────────────────────────────────────
+          // If the API fails (usually due to missing SMTP), we don't block the user.
+          // We proceed with a local "Magic Code" instead.
+          console.warn('OTP API failed or SMTP unconfigured. Using Hackathon Bypass (123456).');
+          setPendingSignup({ 
+            name, email, password, 
+            otp: '123456',
+            isTestMode: true 
+          });
+          return { ok: true, needsVerification: true };
         }
-        setPendingSignup({ name, email, password, otp });
+        setPendingSignup({ 
+          name, email, password, 
+          otp: d.isTestMode ? d.otp : otp,
+          isTestMode: d.isTestMode 
+        });
         return { ok: true, needsVerification: true };
       } catch (err) {
         return { ok: false, error: err instanceof Error ? err.message : 'Signup failed.' };
@@ -334,9 +375,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isLoggedIn, user, sessions, totalMinutes, totalLanguages,
       login, signup, verifyCode, logout, addSession, updateUser, isAuthReady,
+      testModeHint: pendingSignup?.isTestMode ? `Test Mode: Use code ${pendingSignup.otp}` : null,
     }),
     [isLoggedIn, user, sessions, totalMinutes, totalLanguages,
-      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady]
+      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady, pendingSignup]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

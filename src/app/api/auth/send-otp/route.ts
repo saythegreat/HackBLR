@@ -9,13 +9,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email and OTP are required' }, { status: 400 });
     }
 
+    const smtpUser = process.env.SMTP_SENDER_EMAIL;
+    const smtpPass = process.env.SMTP_SENDER_PASSWORD;
+
+    if (!smtpUser || !smtpPass || smtpUser === 'your-email@gmail.com') {
+      console.warn('⚠️ SMTP credentials missing. HACKATHON BYPASS ENABLED.');
+      console.log(`[AUTH DEBUG] User: ${email}, Magic OTP: 123456`);
+      
+      return NextResponse.json({ 
+        success: true, 
+        isTestMode: true,
+        otp: '123456' // Send the OTP back in test mode so the client knows it
+      });
+    }
+
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_SERVER || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
+      secure: false,
       auth: {
-        user: process.env.SMTP_SENDER_EMAIL,
-        pass: process.env.SMTP_SENDER_PASSWORD,
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 

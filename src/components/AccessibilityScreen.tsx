@@ -135,10 +135,6 @@ export default function AccessibilityScreen() {
     }
   }, [OPTIONS]);
 
-  // Handle lang change for category reset
-  useEffect(() => {
-    setActiveCategory('All');
-  }, [t.catAll]);
 
   useEffect(() => {
     if (Object.keys(toggles).length === 0) return;
