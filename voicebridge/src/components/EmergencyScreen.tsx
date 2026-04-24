@@ -7,11 +7,11 @@ import { Phone, MapPin, Mic, AlertTriangle, Shield, Volume2, MessageSquare, Lock
 import { LANGUAGES as LANG_LIST } from '@/lib/languages';
 
 const EMERGENCY_PHRASES: Record<string, string>[] = [
-  { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助' },
-  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llama una ambulance', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车' },
-  { en: 'I am lost', hi: 'मैं खो गया हूँ', es: 'Estoy perdido', ar: 'لقد ضعت', zh: '我迷路了' },
-  { en: 'I cannot breathe', hi: 'मुझे सांस नहीं आ रही', es: 'No puedo respirar', ar: 'لا أستطيع التنفس', zh: '我无法呼吸' },
-  { en: 'I have an allergy', hi: 'मुझे एलर्जी है', es: 'Tengo alergia', ar: 'لدي حساسية', zh: '我有过敏' },
+  { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助', bn: 'আমার সাহায্য দরকার', ta: 'எனக்கு உதவி வேண்டும்', te: 'నాకు సహాయం కావాలి', kn: 'ನನಗೆ ಸಹಾಯ ಬೇಕು', ml: 'എനിക്ക് സഹായം വേണം', mr: 'मला मदत हवी आहे', gu: 'મને મદદ જોઈએ છે', pa: 'ਮੈਨੂੰ ਮਦਦ ਚਾਹੀਦੀ ਹੈ', ur: 'مجھے مدد چاہیے', fr: "J'ai besoin d'aide", de: 'Ich brauche Hilfe', ja: '助けてください', ko: '도움이 필요합니다', pt: 'Preciso de ajuda', ru: 'Мне нужна помощь', it: 'Ho bisogno di aiuto' },
+  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llame a una ambulancia', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车', bn: 'অ্যাম্বুলেন্স ডাকুন', ta: 'ஆம்புலன்ஸ் அழைக்கவும்', te: 'అంబులెన్స్ పిలవండి', kn: 'ಅಂಬುಲೆನ್ಸ್ ಕರೆಯಿರಿ', ml: 'ആംബുലൻസ് വിളിക്കൂ', mr: 'रुग्णवाहिका बोलवा', gu: 'એમ્બ્યુલન્સ બોલાવો', pa: 'ਐਂਬੂਲੈਂਸ ਬੁਲਾਓ', ur: 'ایمبولینس بلائیں', fr: 'Appelez une ambulance', de: 'Rufen Sie einen Krankenwagen', ja: '救急車を呼んでください', ko: '구급차를 불러주세요', pt: 'Chame uma ambulância', ru: 'Вызовите скорую', it: 'Chiama un\'ambulanza' },
+  { en: 'I am lost', hi: 'मैं खो गया हूँ', es: 'Estoy perdido', ar: 'لقد ضعت', zh: '我迷路了', bn: 'আমি হারিয়ে গেছি', ta: 'நான் தொலைந்துவிட்டேன்', te: 'నేను దారి తప్పాను', kn: 'ನಾನು ಕಳೆದುಹೋಗಿದ್ದೇನೆ', ml: 'ഞാൻ വഴിതെറ്റി', mr: 'मी हरवलो आहे', gu: 'હું ખોવાઈ ગયો છું', pa: 'ਮੈਂ ਗੁੰਮ ਹੋ ਗਿਆ ਹਾਂ', ur: 'میں کھو گیا ہوں', fr: 'Je suis perdu', de: 'Ich habe mich verirrt', ja: '道に迷いました', ko: '길을 잃었어요', pt: 'Estou perdido', ru: 'Я потерялся', it: 'Mi sono perso' },
+  { en: 'I cannot breathe', hi: 'मुझे सांस नहीं आ रही', es: 'No puedo respirar', ar: 'لا أستطيع التنفس', zh: '我无法呼吸', bn: 'আমি শ্বাস নিতে পারছি না', ta: 'என்னால் சுவாசிக்க முடியவில்லை', te: 'నాకు ఊపిరి ఆడటం లేదు', kn: 'ನನಗೆ ಉಸಿರಾಡಲು ಆಗುತ್ತಿಲ್ಲ', ml: 'എനിക്ക് ശ്വസിക്കാൻ കഴിയുന്നില്ല', mr: 'मला श्वास घेता येत नाही', gu: 'મને શ્વાસ લેવામાં તકલીફ થાય છે', pa: 'ਮੈਨੂੰ ਸਾਹ ਨਹੀਂ ਆ ਰਿਹਾ', ur: 'مجھے سانس نہیں آ رہی', fr: 'Je ne peux pas respirer', de: 'Ich kann nicht atmen', ja: '息ができません', ko: '숨을 쉴 수가 없어요', pt: 'Não consigo respirar', ru: 'Я не могу дышать', it: 'Non riesco a respirare' },
+  { en: 'I have an allergy', hi: 'मुझे एलर्जी है', es: 'Tengo una alergia', ar: 'لدي حساسية', zh: '我有过敏', bn: 'আমার অ্যালার্জি আছে', ta: 'எனக்கு ஒவ்வாமை உள்ளது', te: 'నాకు అలర్జీ ఉంది', kn: 'ನನಗೆ ಅಲರ್ಜಿ ಇದೆ', ml: 'എനിക്ക് അലർജിയുണ്ട്', mr: 'मला ऍलर्जी आहे', gu: 'મને એલર્જી છે', pa: 'ਮੈਨੂੰ ਐਲਰਜੀ ਹੈ', ur: 'مجھے الرجی ہے', fr: 'J\'ai une allergie', de: 'Ich habe eine Allergie', ja: 'アレルギーがあります', ko: '알레르기가 있습니다', pt: 'Tenho uma alergia', ru: 'У меня аллергия', it: 'Ho un\'allergia' },
 ];
 
 
@@ -35,11 +35,17 @@ export default function EmergencyScreen() {
     notice: isHi ? 'आपातकालीन मोड आपका स्थान और पहले से भरे हुए संदेश भेजता है। तत्काल खतरे के लिए हमेशा 112 डायल करें।' : 'Emergency mode sends your location and pre-filled messages to your emergency contact. Always call local emergency services (112/911) for immediate danger.',
   };
 
-  const [activeLang, setActiveLang] = useState<string>('en');
+  const [activeLang, setActiveLang] = useState<string>(fromLang?.code || 'en');
   const [isCallActive, setIsCallActive] = useState(false);
   const [locationSent, setLocationSent] = useState(false);
   const [speakingPhrase, setSpeakingPhrase] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  
+  useEffect(() => {
+    if (fromLang?.code) {
+      setActiveLang(fromLang.code);
+    }
+  }, [fromLang?.code]);
   
   // Use TTS engine to play the emergency phrases
   const { speak } = useTTS({
