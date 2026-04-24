@@ -305,7 +305,7 @@ export default function LoginScreen() {
                         placeholder={ui.loginEmail}
                         value={email}
                         onChange={setEmail}
-                        autoComplete={mode === 'login' ? 'username' : 'email'}
+                        autoComplete="off"
                       />
                     ) : (
                       <InputField
@@ -325,7 +325,7 @@ export default function LoginScreen() {
                       placeholder={ui.loginPassword}
                       value={password}
                       onChange={setPassword}
-                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                      autoComplete="off"
                       suffix={
                         <button
                           type="button"
