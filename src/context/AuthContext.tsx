@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return !!readCachedUser(); // instant ready for returning users
   });
 
-  const [pendingSignup, setPendingSignup] = useState<{ name: string; email: string; password: string; otp: string; isTestMode?: boolean } | null>(null);
+  const [pendingSignup, setPendingSignup] = useState<{ name: string; email: string; password: string; otp: string } | null>(null);
 
   // ── OPTIMIZATION: Supabase auth sync happens in background ────────────────
   // For new/returning users: validate session in background without blocking UI
@@ -253,30 +253,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRememberMe(remember);
       if (!supabase) return { ok: false, error: 'Supabase configuration missing.' };
       try {
+        // ─── Proactive Check: Try to sign up immediately ─────────────────────
+        // This checks if the account already exists. 
+        // Note: If email confirmation is ON in Supabase, this will also trigger 
+        // a Supabase email. For the best experience with custom OTP, 
+        // disable 'Confirm email' in Supabase Auth settings.
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { full_name: name, avatar: '👤' },
+            redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
+          },
+        });
+
+        if (signUpError) {
+          if (signUpError.message.toLowerCase().includes('already registered')) {
+            return { ok: false, error: 'An account with this email already exists. Please sign in instead.' };
+          }
+          return { ok: false, error: signUpError.message };
+        }
+
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const res = await fetch('/api/auth/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, otp }),
         });
-        const d = await res.json().catch(() => ({}));
+        const d = await res.json();
         if (!res.ok) {
-          // ─── HACKATHON RESILIENCE BYPASS ────────────────────────────────────
-          // If the API fails (usually due to missing SMTP), we don't block the user.
-          // We proceed with a local "Magic Code" instead.
-          console.warn('OTP API failed or SMTP unconfigured. Using Hackathon Bypass (123456).');
-          setPendingSignup({ 
-            name, email, password, 
-            otp: '123456',
-            isTestMode: true 
-          });
-          return { ok: true, needsVerification: true };
+          return { ok: false, error: d.error || 'Failed to send verification email.' };
         }
-        setPendingSignup({ 
-          name, email, password, 
-          otp: d.isTestMode ? d.otp : otp,
-          isTestMode: d.isTestMode 
-        });
+        setPendingSignup({ name, email, password, otp });
         return { ok: true, needsVerification: true };
       } catch (err) {
         return { ok: false, error: err instanceof Error ? err.message : 'Signup failed.' };
@@ -288,16 +296,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (code: string) => {
       if (!pendingSignup) return { ok: false, error: 'No signup in progress.' };
       if (code !== pendingSignup.otp) return { ok: false, error: 'Invalid verification code.' };
+      
       try {
-        const { error } = await supabase.auth.signUp({
+        // The user was already created in the 'signup' step.
+        // We just need to sign them in now to get the session.
+        const { error } = await supabase.auth.signInWithPassword({
           email: pendingSignup.email,
           password: pendingSignup.password,
-          options: {
-            data: { full_name: pendingSignup.name, avatar: '👤' },
-            redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
-          },
         });
-        if (error) return { ok: false, error: error.message };
+        
+        if (error) {
+          // If sign in fails, it might be because the user is 'pending' 
+          // but we allowed it anyway.
+          return { ok: false, error: error.message };
+        }
+        
         setPendingSignup(null);
         return { ok: true };
       } catch (err) {
@@ -375,10 +388,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       isLoggedIn, user, sessions, totalMinutes, totalLanguages,
       login, signup, verifyCode, logout, addSession, updateUser, isAuthReady,
-      testModeHint: pendingSignup?.isTestMode ? `Test Mode: Use code ${pendingSignup.otp}` : null,
+      testModeHint: null,
     }),
     [isLoggedIn, user, sessions, totalMinutes, totalLanguages,
-      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady, pendingSignup]
+      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

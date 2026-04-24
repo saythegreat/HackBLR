@@ -13,14 +13,9 @@ export async function POST(req: Request) {
     const smtpPass = process.env.SMTP_SENDER_PASSWORD;
 
     if (!smtpUser || !smtpPass || smtpUser === 'your-email@gmail.com') {
-      console.warn('⚠️ SMTP credentials missing. HACKATHON BYPASS ENABLED.');
-      console.log(`[AUTH DEBUG] User: ${email}, Magic OTP: 123456`);
-      
       return NextResponse.json({ 
-        success: true, 
-        isTestMode: true,
-        otp: '123456' // Send the OTP back in test mode so the client knows it
-      });
+        error: 'SMTP server is not configured. Please set SMTP_SENDER_EMAIL and SMTP_SENDER_PASSWORD in your environment variables.' 
+      }, { status: 500 });
     }
 
     const transporter = nodemailer.createTransport({
