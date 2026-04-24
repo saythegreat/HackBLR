@@ -189,7 +189,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         fromFlag: fromLang.flag,
         toFlag: toLang.flag,
         messages: messageCountRef.current + 1,
-        duration: `${mins}m ${secs.toString().padStart(2, '0')}s`,
+        durationSec: durationSec,
       })).catch(() => {});
 
       sessionStartRef.current = Date.now();

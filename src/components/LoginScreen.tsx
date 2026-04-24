@@ -5,12 +5,13 @@ import { Mail, Lock, User, Eye, EyeOff, Sparkles, AlertCircle, ArrowRight, Mic, 
 import { useAuth } from '@/context/AuthContext';
 import { LANGUAGES } from '@/lib/languages';
 import { useVoice } from '@/context/VoiceContext';
+import { getUIStrings } from '@/lib/uiTranslations';
 
 type Mode = 'login' | 'signup';
 
 export default function LoginScreen() {
   const { login, signup, verifyCode } = useAuth();
-  const { fromLang } = useVoice();
+  const { fromLang, setFromLang } = useVoice();
   const ui = getUIStrings(fromLang.label);
   const [mode, setMode] = useState<Mode | 'verify'>('login');
   const [name, setName] = useState('');
@@ -103,9 +104,36 @@ export default function LoginScreen() {
                 <Sparkles size={16} color="#a78bfa" />
               </div>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center' }}>
-                Your voice, understood everywhere
+                {ui.appTagline}
               </p>
             </motion.div>
+
+            {/* Language Selection Header */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <select
+                value={fromLang.code}
+                onChange={(e) => {
+                  const found = LANGUAGES.find(l => l.code === e.target.value);
+                  if (found) setFromLang(found);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 8,
+                  padding: '4px 8px',
+                  color: 'var(--text-muted)',
+                  fontSize: 12,
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                {LANGUAGES.map(l => (
+                  <option key={l.code} value={l.code} style={{ background: '#080b14' }}>
+                    {l.flag} {l.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Mode toggle */}
             <motion.div

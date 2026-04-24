@@ -89,7 +89,7 @@ export default function HomeScreen({ onNavigate }: HomeScreenProps = {}) {
         style={{ display: 'flex', gap: 8, marginBottom: 28 }}
       >
         {[
-          { label: ui.statSessions,  value: formatNumber(sessionCount, fromLang.label).padStart(2, '0') },
+          { label: ui.statSessions,  value: formatNumber(sessionCount, fromLang.label, { minimumIntegerDigits: 2 }) },
           { label: ui.statLanguages, value: `${formatNumber(50, fromLang.label)}+` },
           { label: ui.statAccuracy,  value: `${formatNumber(99, fromLang.label)}%` },
         ].map((stat) => (

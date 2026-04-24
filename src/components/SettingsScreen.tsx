@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useVoice } from '@/context/VoiceContext';
 import { LANGUAGES as LANG_LIST } from '@/lib/languages';
 import { getUIStrings } from '@/lib/uiTranslations';
+import { formatNumber, formatRelativeTime, formatDuration } from '@/lib/utils';
 
 const VOICE_OPTIONS = [
   { id: 'nova',    label: 'Nova',   tag: 'AI',      description: 'Warm, conversational AI voice',       icon: '🤖' },
@@ -214,9 +215,9 @@ export default function SettingsScreen() {
               {!isEditing && (
                 <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
                   {[
-                    { label: ui.statSessions,  value: displaySessionCount.toString() },
-                    { label: ui.statLanguages, value: displayLanguages.toString() },
-                    { label: ui.minutes,   value: displayMinutes.toString() },
+                    { label: ui.statSessions,  value: formatNumber(displaySessionCount, fromLang.label) },
+                    { label: ui.statLanguages, value: formatNumber(displayLanguages, fromLang.label) },
+                    { label: ui.minutes,   value: formatNumber(displayMinutes, fromLang.label) },
                   ].map(s => (
                     <div key={s.label} style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#c084fc' }}>{s.value}</div>
@@ -381,16 +382,16 @@ export default function SettingsScreen() {
                         <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>
                           {session.fromFlag} {session.from} → {session.toFlag} {session.to}
                         </div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{session.time}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatRelativeTime(session.timestamp, fromLang.label)}</div>
                       </div>
                       <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <span className="pill pill-purple" style={{ alignItems: 'center', gap: 4 }}>
-                        <Clock size={9} />{session.duration}
+                        <Clock size={9} />{formatDuration(session.durationSec, fromLang.label)}
                       </span>
                       <span className="pill pill-blue">
-                        {session.messages} {ui.msgs}
+                        {formatNumber(session.messages, fromLang.label)} {ui.msgs}
                       </span>
                     </div>
                   </div>
@@ -404,7 +405,7 @@ export default function SettingsScreen() {
                 transition={{ delay: 0.4 }}
                 style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: 12 }}
               >
-                {sessions.length} total sessions • {displayMinutes} minutes translated
+                {formatNumber(sessions.length, fromLang.label)} {ui.msgs} • {formatNumber(displayMinutes, fromLang.label)} {ui.minutes.toLowerCase()}
               </motion.div>
             )}
           </motion.div>

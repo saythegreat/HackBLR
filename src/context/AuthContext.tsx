@@ -18,7 +18,7 @@ export interface SessionRecord {
   fromFlag: string;
   toFlag: string;
   messages: number;
-  duration: string;
+  durationSec: number;
   time: string;
   timestamp: number;
 }
@@ -114,8 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(SESSIONS_KEY);
       if (raw) {
-        const loaded: Omit<SessionRecord, 'time'>[] = JSON.parse(raw);
-        return loaded.map(s => ({ ...s, time: relativeTime(s.timestamp) }));
+        const loaded: SessionRecord[] = JSON.parse(raw);
+        return loaded;
       }
     } catch { /* ignore */ }
     return [];
@@ -186,8 +186,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     fromFlag: s.from_flag as string,
                     toFlag: s.to_flag as string,
                     messages: s.messages_count as number,
-                    duration: s.duration as string,
-                    time: relativeTime(new Date(s.created_at as string).getTime()),
+                    durationSec: (s.duration_sec as number) || 0,
+                    time: '',
                     timestamp: new Date(s.created_at as string).getTime(),
                   })));
                 }
@@ -297,7 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 from_flag: session.fromFlag,
                 to_flag: session.toFlag,
                 messages_count: session.messages,
-                duration: session.duration,
+                duration_sec: session.durationSec,
               });
             }
           } catch { /* ignore */ }
@@ -322,7 +322,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Derived stats — memoized so they don't recalculate on every render
   const totalMinutes = useMemo(
-    () => Math.round(sessions.reduce((acc, s) => acc + parseDurationMs(s.duration), 0) / 60_000),
+    () => Math.round(sessions.reduce((acc, s) => acc + (s.durationSec || 0), 0) / 60),
     [sessions]
   );
   const totalLanguages = useMemo(

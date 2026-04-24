@@ -2,25 +2,38 @@
  * Formats a number according to the user's current locale.
  * If the language is one of the supported Indian languages, it uses that locale.
  */
-export function formatNumber(n: number, langLabel: string): string {
+export function formatNumber(n: number, langLabel: string, options?: Intl.NumberFormatOptions): string {
   const localeMap: Record<string, string> = {
     'English': 'en-US',
-    'Hindi': 'hi-IN',
-    'Bengali': 'bn-IN',
-    'Tamil': 'ta-IN',
-    'Telugu': 'te-IN',
-    'Kannada': 'kn-IN',
-    'Malayalam': 'ml-IN',
-    'Marathi': 'mr-IN',
-    'Gujarati': 'gu-IN',
-    'Punjabi': 'pa-IN',
-    'Urdu': 'ur-PK',
+    'Hindi': 'hi-IN-u-nu-native',
+    'Bengali': 'bn-IN-u-nu-native',
+    'Tamil': 'ta-IN-u-nu-native',
+    'Telugu': 'te-IN-u-nu-native',
+    'Kannada': 'kn-IN-u-nu-native',
+    'Malayalam': 'ml-IN-u-nu-native',
+    'Marathi': 'mr-IN-u-nu-native',
+    'Gujarati': 'gu-IN-u-nu-native',
+    'Punjabi': 'pa-IN-u-nu-native',
+    'Urdu': 'ur-PK-u-nu-native',
+    'Arabic': 'ar-SA-u-nu-native',
+    'Mandarin': 'zh-CN-u-nu-native',
+    'Japanese': 'ja-JP-u-nu-native',
+    'Korean': 'ko-KR-u-nu-native',
+    'Spanish': 'es-ES',
+    'French': 'fr-FR',
+    'German': 'de-DE',
+    'Portuguese': 'pt-BR',
+    'Russian': 'ru-RU',
+    'Swahili': 'sw-KE',
   };
 
   const locale = localeMap[langLabel] || 'en-US';
   
-  // Use Intl.NumberFormat for native digit representation if supported
-  return new Intl.NumberFormat(locale).format(n);
+  try {
+    return new Intl.NumberFormat(locale, options).format(n);
+  } catch (e) {
+    return n.toLocaleString();
+  }
 }
 
 /**
@@ -45,4 +58,53 @@ export function toNativeDigits(n: number | string, langLabel: string): string {
   if (!map) return str;
 
   return str.replace(/[0-9]/g, w => map[+w]);
+}
+
+export function formatRelativeTime(ts: number, langLabel: string): string {
+  const localeMap: Record<string, string> = {
+    'English': 'en-US',
+    'Hindi': 'hi-IN',
+    'Marathi': 'mr-IN',
+    'Bengali': 'bn-IN',
+    'Tamil': 'ta-IN',
+    'Telugu': 'te-IN',
+    'Kannada': 'kn-IN',
+    'Malayalam': 'ml-IN',
+    'Gujarati': 'gu-IN',
+    'Punjabi': 'pa-IN',
+    'Spanish': 'es-ES',
+    'French': 'fr-FR',
+  };
+
+  const locale = localeMap[langLabel] || 'en-US';
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60_000);
+  
+  if (mins < 1) {
+    return langLabel === 'Hindi' ? 'अभी' : (langLabel === 'Marathi' ? 'आत्ता' : 'Just now');
+  }
+
+  try {
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (mins < 60) return rtf.format(-mins, 'minute');
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return rtf.format(-hrs, 'hour');
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return rtf.format(-days, 'day');
+    
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(ts);
+  } catch (e) {
+    return new Date(ts).toLocaleString();
+  }
+}
+
+export function formatDuration(seconds: number, langLabel: string): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  
+  const mLabel = langLabel === 'Hindi' ? 'मि' : (langLabel === 'Marathi' ? 'मि' : 'm');
+  const sLabel = langLabel === 'Hindi' ? 'से' : (langLabel === 'Marathi' ? 'से' : 's');
+
+  if (mins === 0) return `${formatNumber(secs, langLabel)}${sLabel}`;
+  return `${formatNumber(mins, langLabel)}${mLabel} ${formatNumber(secs, langLabel, { minimumIntegerDigits: 2 })}${sLabel}`;
 }
