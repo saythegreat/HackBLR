@@ -5,7 +5,7 @@ import { useVoice } from '@/context/VoiceContext';
 import { useAuth } from '@/context/AuthContext';
 import BottomNav, { type Screen } from '@/components/BottomNav';
 import HomeScreen from '@/components/HomeScreen';
-import SplashScreen from '@/components/SplashScreen';
+
 
 // ─── OPTIMIZATION: Lazy-load all non-critical screens ──────────────────────────
 // These are only downloaded when the user first navigates to them.
@@ -82,7 +82,6 @@ function prefetchScreen(importer: () => Promise<unknown>) {
 export default function VoiceBridgeApp() {
   const [activeScreen, setActiveScreen] = useState<Screen>('home');
   const [showLanguagePicker, setShowLanguagePicker] = useState(false);
-  const isInitializing = false; // Splash screen removed — go directly to login/home
   const { pendingNavigate, clearPendingNavigate } = useVoice();
   const { isLoggedIn } = useAuth();
 
@@ -134,16 +133,7 @@ export default function VoiceBridgeApp() {
       }}
     >
       <AnimatePresence mode="wait">
-        {isInitializing ? (
-          <motion.div
-            key="splash"
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.35 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 1000 }}
-          >
-            <SplashScreen />
-          </motion.div>
-        ) : !isLoggedIn ? (
+        {!isLoggedIn ? (
           <motion.div
             key="login"
             initial={{ opacity: 0 }}
