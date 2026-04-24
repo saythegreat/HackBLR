@@ -38,6 +38,8 @@ interface AuthContextValue {
   totalMinutes: number;
   totalLanguages: number;
   login: (email: string, password: string, remember?: boolean) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
+  loginWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  loginWithPhone: (phone: string) => Promise<{ ok: boolean; error?: string }>;
   signup: (name: string, email: string, password: string, remember?: boolean) => Promise<{ ok: boolean; error?: string; needsVerification?: boolean }>;
   verifyCode: (code: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
@@ -248,6 +250,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []
   );
 
+  const loginWithGoogle = useCallback(async () => {
+    if (!supabase) return { ok: false, error: 'Supabase configuration missing.' };
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
+        }
+      });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : 'Google login failed.' };
+    }
+  }, []);
+
+  const loginWithPhone = useCallback(async (phone: string) => {
+    if (!supabase) return { ok: false, error: 'Supabase configuration missing.' };
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ phone });
+      if (error) return { ok: false, error: error.message };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : 'SMS login failed.' };
+    }
+  }, []);
+
   const signup = useCallback(
     async (name: string, email: string, password: string, remember: boolean = true) => {
       setRememberMe(remember);
@@ -387,11 +416,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       isLoggedIn, user, sessions, totalMinutes, totalLanguages,
-      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady,
+      login, loginWithGoogle, loginWithPhone, signup, verifyCode, logout, addSession, updateUser, isAuthReady,
       testModeHint: null,
     }),
     [isLoggedIn, user, sessions, totalMinutes, totalLanguages,
-      login, signup, verifyCode, logout, addSession, updateUser, isAuthReady]
+      login, loginWithGoogle, loginWithPhone, signup, verifyCode, logout, addSession, updateUser, isAuthReady]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

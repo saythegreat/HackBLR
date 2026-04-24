@@ -10,7 +10,7 @@ import { getUIStrings } from '@/lib/uiTranslations';
 type Mode = 'login' | 'signup';
 
 export default function LoginScreen() {
-  const { login, signup, verifyCode, testModeHint } = useAuth();
+  const { login, signup, verifyCode, loginWithGoogle, loginWithPhone, testModeHint } = useAuth();
   const { fromLang, setFromLang } = useVoice();
   const ui = getUIStrings(fromLang.label);
   const [mode, setMode] = useState<Mode | 'verify'>('login');
@@ -22,21 +22,38 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [phone, setPhone] = useState('');
+  const [usePhone, setUsePhone] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const result = mode === 'login'
-      ? await login(email, password, rememberMe)
-      : await signup(name, email, password, rememberMe);
-
-    setLoading(false);
-    if (!result.ok) {
-      setError(result.error ?? 'Something went wrong.');
-    } else if (mode === 'signup' && result.needsVerification) {
-      setMode('verify');
+    if (mode === 'login') {
+      if (usePhone) {
+        if (!phone) {
+          setError('Please enter your phone number.');
+          setLoading(false);
+          return;
+        }
+        const res = await loginWithPhone(phone);
+        setLoading(false);
+        if (!res.ok) return setError(res.error ?? 'SMS failed.');
+        setMode('verify');
+        return;
+      }
+      const res = await login(email, password, rememberMe);
+      setLoading(false);
+      if (!res.ok) return setError(res.error ?? 'Login failed.');
+    } else {
+      const result = await signup(name, email, password, rememberMe);
+      setLoading(false);
+      if (!result.ok) {
+        setError(result.error ?? 'Something went wrong.');
+      } else if (result.needsVerification) {
+        setMode('verify');
+      }
     }
   };
 
@@ -280,15 +297,26 @@ export default function LoginScreen() {
                       )}
                     </AnimatePresence>
 
-                    <InputField
-                      id="auth-email"
-                      icon={<Mail size={16} />}
-                      type="email"
-                      placeholder={ui.loginEmail}
-                      value={email}
-                      onChange={setEmail}
-                      autoComplete={mode === 'login' ? 'username' : 'email'}
-                    />
+                    {!usePhone ? (
+                      <InputField
+                        id="auth-email"
+                        icon={<Mail size={16} />}
+                        type="email"
+                        placeholder={ui.loginEmail}
+                        value={email}
+                        onChange={setEmail}
+                        autoComplete={mode === 'login' ? 'username' : 'email'}
+                      />
+                    ) : (
+                      <InputField
+                        id="auth-phone"
+                        icon={<Mic size={16} />} // Using Mic as a proxy for phone/voice
+                        type="tel"
+                        placeholder="Phone Number (e.g. +1...)"
+                        value={phone}
+                        onChange={setPhone}
+                      />
+                    )}
 
                     <InputField
                       id="auth-password"
@@ -356,11 +384,54 @@ export default function LoginScreen() {
                         />
                       ) : (
                         <>
-                          {mode === 'login' ? 'Sign In' : 'Create Free Account'}
+                          {mode === 'login' 
+                            ? (usePhone ? 'Send SMS Code' : 'Sign In') 
+                            : 'Create Free Account'}
                           <ArrowRight size={18} />
                         </>
                       )}
                     </motion.button>
+
+                    <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                      <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>OR</span>
+                      <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.06)' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button
+                        type="button"
+                        onClick={() => loginWithGoogle()}
+                        style={{
+                          flex: 1, padding: '12px', borderRadius: 14,
+                          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                          color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      >
+                        <Globe size={16} color="#4285F4" />
+                        Google
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUsePhone(!usePhone)}
+                        style={{
+                          flex: 1, padding: '12px', borderRadius: 14,
+                          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                          color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                      >
+                        <Mic size={16} />
+                        {usePhone ? 'Use Email' : 'Phone'}
+                      </button>
+                    </div>
                   </form>
                 )}
             </motion.div>
