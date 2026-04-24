@@ -202,11 +202,6 @@ export default function LoginScreen() {
                       <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                         {ui.loginSentCode} <b>{email}</b>
                       </p>
-                      {testModeHint && (
-                        <p style={{ fontSize: 13, color: '#fcd34d', marginTop: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
-                          {testModeHint}
-                        </p>
-                      )}
                     </div>
                     
                     <InputField
