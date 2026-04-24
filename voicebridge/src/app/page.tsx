@@ -16,7 +16,7 @@ const EmergencyScreen     = lazy(() => import('@/components/EmergencyScreen'));
 const SettingsScreen      = lazy(() => import('@/components/SettingsScreen'));
 const LoginScreen         = lazy(() => import('@/components/LoginScreen'));
 
-const LanguageSetupModal  = lazy(() => import('@/components/LanguageSetupModal'));
+
 
 // ─── Lightweight screen skeleton — shown while lazy chunk downloads ─────────────
 const ScreenSkeleton = memo(function ScreenSkeleton() {
@@ -81,7 +81,6 @@ function prefetchScreen(importer: () => Promise<unknown>) {
 
 export default function VoiceBridgeApp() {
   const [activeScreen, setActiveScreen] = useState<Screen>('home');
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const { pendingNavigate, clearPendingNavigate } = useVoice();
   const { isLoggedIn } = useAuth();
 
@@ -102,21 +101,6 @@ export default function VoiceBridgeApp() {
       requestAnimationFrame(() => setActiveScreen('conversation'));
     }
   }, [pendingNavigate, clearPendingNavigate]);
-
-  // ─── Onboarding check ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (isLoggedIn) {
-      const needsLang = localStorage.getItem('vb_needs_lang_setup') === 'true';
-      if (needsLang) setShowLanguagePicker(true);
-    }
-  }, [isLoggedIn]);
-
-  const completeLangSetup = useCallback(() => {
-    setShowLanguagePicker(false);
-    localStorage.removeItem('vb_needs_lang_setup');
-    // Clear any stale tutorial flag
-    localStorage.removeItem('vb_show_tutorial');
-  }, []);
 
   const isEmergency = activeScreen === 'emergency';
 
@@ -141,10 +125,7 @@ export default function VoiceBridgeApp() {
             exit={{ opacity: 0 }}
             style={{ width: '100%', height: '100%' }}
           >
-            {/* LoginScreen lazy — only downloaded when user is not logged in */}
-            <Suspense fallback={<ScreenSkeleton />}>
-              <LoginScreen />
-            </Suspense>
+            <LoginScreen />
           </motion.div>
         ) : (
           <motion.div
@@ -202,15 +183,6 @@ export default function VoiceBridgeApp() {
             </div>
 
             <BottomNav active={activeScreen} onChange={setActiveScreen} />
-
-            {/* Language setup modal — shown after login/signup if needed */}
-            <AnimatePresence>
-              {showLanguagePicker && (
-                <Suspense fallback={null}>
-                  <LanguageSetupModal onComplete={completeLangSetup} />
-                </Suspense>
-              )}
-            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

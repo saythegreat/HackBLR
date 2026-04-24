@@ -33,8 +33,6 @@ export default function LoginScreen() {
       setError(result.error ?? 'Something went wrong.');
     } else if (mode === 'signup' && result.needsVerification) {
       setMode('verify');
-    } else if (mode === 'signup' || mode === 'login') {
-      localStorage.setItem('vb_needs_lang_setup', 'true');
     }
   };
 
@@ -48,8 +46,6 @@ export default function LoginScreen() {
     
     if (!result.ok) {
       setError(result.error ?? 'Invalid code.');
-    } else {
-      localStorage.setItem('vb_needs_lang_setup', 'true');
     }
   };
 
