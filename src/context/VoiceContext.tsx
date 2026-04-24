@@ -45,8 +45,27 @@ const VoiceContext = createContext<VoiceContextValue | null>(null);
 const clientTranslationCache = new Map<string, string>();
 
 export function VoiceProvider({ children }: { children: ReactNode }) {
-  const [fromLang, setFromLangState] = useState<Language>(LANGUAGES[0]);
-  const [toLang, setToLangState] = useState<Language>(LANGUAGES[1]);
+  const [fromLang, setFromLangState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vb_from_lang');
+      if (saved) {
+        const found = LANGUAGES.find(l => l.code === saved);
+        if (found) return found;
+      }
+    }
+    return LANGUAGES[0];
+  });
+
+  const [toLang, setToLangState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vb_to_lang');
+      if (saved) {
+        const found = LANGUAGES.find(l => l.code === saved);
+        if (found) return found;
+      }
+    }
+    return LANGUAGES[1];
+  });
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionCount, setSessionCount] = useState(0);
@@ -231,8 +250,14 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const clearMessages = useCallback(() => setMessages([]), []);
   const clearError = useCallback(() => setErrorMessage(null), []);
   const clearPendingNavigate = useCallback(() => setPendingNavigate(false), []);
-  const setFromLang = useCallback((l: Language) => setFromLangState(l), []);
-  const setToLang = useCallback((l: Language) => setToLangState(l), []);
+  const setFromLang = useCallback((l: Language) => {
+    setFromLangState(l);
+    if (typeof window !== 'undefined') localStorage.setItem('vb_from_lang', l.code);
+  }, []);
+  const setToLang = useCallback((l: Language) => {
+    setToLangState(l);
+    if (typeof window !== 'undefined') localStorage.setItem('vb_to_lang', l.code);
+  }, []);
   const speakText = useCallback(
     (text: string, langLabel: string) => { stopSpeaking(); speak(text, langLabel); },
     [speak, stopSpeaking]

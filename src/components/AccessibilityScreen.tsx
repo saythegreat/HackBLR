@@ -216,6 +216,7 @@ export default function AccessibilityScreen() {
             >
               {categoryMap[catKey]}
             </motion.button>
+          ))}
         </div>
       </motion.div>
 

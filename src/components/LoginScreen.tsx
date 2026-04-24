@@ -10,6 +10,8 @@ type Mode = 'login' | 'signup';
 
 export default function LoginScreen() {
   const { login, signup, verifyCode } = useAuth();
+  const { fromLang } = useVoice();
+  const ui = getUIStrings(fromLang.label);
   const [mode, setMode] = useState<Mode | 'verify'>('login');
   const [name, setName] = useState('');
   const [otp, setOtp] = useState('');
@@ -128,7 +130,7 @@ export default function LoginScreen() {
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  {m === 'login' ? 'Sign In' : 'Create Account'}
+                  {m === 'login' ? ui.loginSignIn : ui.loginCreateAccount}
                 </button>
               ))}
             </motion.div>
@@ -150,13 +152,13 @@ export default function LoginScreen() {
                   transition={{ duration: 0.25 }}
                   style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, letterSpacing: -0.5 }}
                 >
-                  {mode === 'login' ? 'Welcome back 👋' : 'Join VoiceBridge 🚀'}
+                  {mode === 'login' ? ui.loginWelcome : ui.loginJoin}
                 </motion.h2>
               </AnimatePresence>
               <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.5 }}>
                 {mode === 'login'
-                  ? 'Sign in to access your translation history and pro features.'
-                  : 'Start breaking language barriers today. Just name, email and password.'}
+                  ? ui.loginHistoryPro
+                  : ui.loginStartBreaking}
               </p>
               {mode === 'verify' ? (
                 <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -166,10 +168,10 @@ export default function LoginScreen() {
                     }}>
                       <Mail size={24} color="#a78bfa" style={{ marginBottom: 8 }} />
                       <p style={{ fontSize: 14, color: 'white', fontWeight: 600, marginBottom: 4 }}>
-                        Check ur mail for the verifications
+                        {ui.loginCheckMail}
                       </p>
                       <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                        We sent a 6-digit code to <b>{email}</b>
+                        {ui.loginSentCode} <b>{email}</b>
                       </p>
                     </div>
                     
@@ -177,7 +179,7 @@ export default function LoginScreen() {
                       id="auth-otp"
                       icon={<Lock size={16} />}
                       type="text"
-                      placeholder="Enter 6-digit code"
+                      placeholder={ui.loginEnterCode}
                       value={otp}
                       onChange={setOtp}
                     />
@@ -203,7 +205,7 @@ export default function LoginScreen() {
                     >
                       {loading ? (
                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: 'linear' }} style={{ width: 22, height: 22, border: '2.5px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%' }} />
-                      ) : 'Verify & Continue'}
+                      ) : ui.loginVerifyContinue}
                     </motion.button>
                     
                     <button 
@@ -211,7 +213,7 @@ export default function LoginScreen() {
                       onClick={() => setMode('signup')}
                       style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 13, cursor: 'pointer', marginTop: 10 }}
                     >
-                      Wrong email? Go back
+                      {ui.loginWrongEmail}
                     </button>
                   </form>
                 ) : (
@@ -230,7 +232,7 @@ export default function LoginScreen() {
                             id="auth-name"
                             icon={<User size={16} />}
                             type="text"
-                            placeholder="Your full name"
+                            placeholder={ui.loginFullName}
                             value={name}
                             onChange={setName}
                             autoComplete="name"
@@ -243,7 +245,7 @@ export default function LoginScreen() {
                       id="auth-email"
                       icon={<Mail size={16} />}
                       type="email"
-                      placeholder="Email address"
+                      placeholder={ui.loginEmail}
                       value={email}
                       onChange={setEmail}
                       autoComplete={mode === 'login' ? 'username' : 'email'}
@@ -253,7 +255,7 @@ export default function LoginScreen() {
                       id="auth-password"
                       icon={<Lock size={16} />}
                       type={showPass ? 'text' : 'password'}
-                      placeholder="Password"
+                      placeholder={ui.loginPassword}
                       value={password}
                       onChange={setPassword}
                       autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
@@ -282,11 +284,11 @@ export default function LoginScreen() {
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <AlertCircle size={16} style={{ color: '#f87171', flexShrink: 0 }} />
-                            <span style={{ fontSize: 13, color: '#fca5a5', fontWeight: 600 }}>Action Failed</span>
+                            <span style={{ fontSize: 13, color: '#fca5a5', fontWeight: 600 }}>{ui.loginActionFailed}</span>
                           </div>
                           <span style={{ fontSize: 12, color: 'rgba(252,165,165,0.8)', paddingLeft: 24 }}>
                             {error}
-                            {error.includes('Email not confirmed') && '. Please check your inbox for a verification link.'}
+                            {error.includes('Email not confirmed') && `. ${ui.loginEmailNotConfirmed}`}
                           </span>
                         </motion.div>
                       )}
@@ -332,15 +334,15 @@ export default function LoginScreen() {
               style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: 'var(--text-muted)' }}
             >
               {mode === 'login' ? (
-                <>Don&apos;t have an account?{' '}
+                <>{ui.loginNoAccount}{' '}
                   <button onClick={() => switchMode('signup')} style={{ background: 'transparent', border: 'none', color: '#a78bfa', fontWeight: 600, cursor: 'pointer', fontSize: 12, fontFamily: 'Inter, sans-serif' }}>
-                    Sign up free
+                    {ui.loginSignUpFree}
                   </button>
                 </>
               ) : (
-                <>Already have an account?{' '}
+                <>{ui.loginAlreadyAccount}{' '}
                   <button onClick={() => switchMode('login')} style={{ background: 'transparent', border: 'none', color: '#a78bfa', fontWeight: 600, cursor: 'pointer', fontSize: 12, fontFamily: 'Inter, sans-serif' }}>
-                    Sign in
+                    {ui.loginSignInAction}
                   </button>
                 </>
               )}

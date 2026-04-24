@@ -56,7 +56,7 @@ function LanguageSettingsTab({ fromLang, toLang, setFromLang, setToLang, ui }: a
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <Search size={16} style={{ position: 'absolute', left: 12, color: 'var(--text-muted)' }} />
           <input 
-            placeholder="Search languages..."
+            placeholder={ui.searchLanguages}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ 
@@ -189,7 +189,7 @@ export default function SettingsScreen() {
                         opacity: isSaving ? 0.6 : 1
                       }}
                     >
-                      {isSaving ? 'Saving...' : 'Save'}
+                      {isSaving ? ui.saving : ui.save}
                     </button>
                     <button
                       onClick={() => { setIsEditing(false); setEditName(user?.name || ''); }}
@@ -198,15 +198,15 @@ export default function SettingsScreen() {
                         color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer'
                       }}
                     >
-                      Cancel
+                      {ui.cancel}
                     </button>
                   </div>
                 </div>
               ) : (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                    <h2 style={{ fontSize: 18, fontWeight: 700 }}>{user?.name ?? 'Guest'}</h2>
-                    <span className="pill pill-purple">{user?.plan ?? 'Free'}</span>
+                    <h2 style={{ fontSize: 18, fontWeight: 700 }}>{user?.name ?? ui.guest}</h2>
+                    <span className="pill pill-purple">{user?.plan ?? ui.free}</span>
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>{user?.email ?? ''}</div>
                 </>
@@ -216,7 +216,7 @@ export default function SettingsScreen() {
                   {[
                     { label: ui.statSessions,  value: displaySessionCount.toString() },
                     { label: ui.statLanguages, value: displayLanguages.toString() },
-                    { label: ui.profileTab === 'Profile' ? 'Minutes' : 'मिनट',   value: displayMinutes.toString() },
+                    { label: ui.minutes,   value: displayMinutes.toString() },
                   ].map(s => (
                     <div key={s.label} style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#c084fc' }}>{s.value}</div>
@@ -273,8 +273,8 @@ export default function SettingsScreen() {
         {activeTab === 'profile' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {[
-              { id: 'notifications', icon: <Bell size={16} />, label: ui.notifications, desc: ui.profileTab === 'Profile' ? 'Session reminders & updates' : 'सत्र अनुस्मारक और अपडेट', value: notifications ? 'On' : 'Off', onClick: () => setNotifications(v => !v) },
-              { id: 'privacy',       icon: <User size={16} />, label: ui.privacyData, desc: ui.profileTab === 'Profile' ? 'Control your data and recordings' : 'अपना डेटा और रिकॉर्डिंग नियंत्रित करें', value: 'View' },
+              { id: 'notifications', icon: <Bell size={16} />, label: ui.notifications, desc: ui.sessionReminders, value: notifications ? ui.toggleOn : ui.toggleOff, onClick: () => setNotifications(v => !v) },
+              { id: 'privacy',       icon: <User size={16} />, label: ui.privacyData, desc: ui.controlData, value: ui.view },
             ].map((item, i) => (
               <motion.div key={item.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
                 <div
@@ -312,7 +312,7 @@ export default function SettingsScreen() {
               }}
             >
               <LogOut size={14} />
-              Sign Out
+              {ui.signOut}
             </motion.button>
           </motion.div>
         )}
@@ -390,7 +390,7 @@ export default function SettingsScreen() {
                         <Clock size={9} />{session.duration}
                       </span>
                       <span className="pill pill-blue">
-                        {session.messages} msgs
+                        {session.messages} {ui.msgs}
                       </span>
                     </div>
                   </div>

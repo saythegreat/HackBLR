@@ -31,7 +31,7 @@ function useStreamingText(text: string, active: boolean) {
 
 // ─── Message Bubble — shows Original + Translation ────────────────────────────
 function MessageBubble({
-  msg, index, totalCount, onPlay, onCopy, ui,
+  msg, index, totalCount, onPlay, onCopy, ui, user,
 }: {
   msg: Message;
   index: number;
@@ -39,6 +39,7 @@ function MessageBubble({
   onPlay: (text: string, lang: string) => void;
   onCopy: (text: string) => void;
   ui: ReturnType<typeof getUIStrings>;
+  user: any;
 }) {
   const isUser = msg.role === 'user';
   const isLatest = index === totalCount - 1;
@@ -81,7 +82,7 @@ function MessageBubble({
           }}>🤖</div>
         )}
         <span style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500 }}>
-          {isUser ? `${ui.navProfile.trim() || 'You'} • ${msg.lang}` : `VoiceAI • ${msg.lang}`}
+          {isUser ? `${(user?.name || ui.navProfile).trim()} • ${msg.lang}` : `VoiceAI • ${msg.lang}`}
         </span>
         {isUser && (
           <div style={{ width: 24, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>👤</div>
@@ -186,6 +187,7 @@ function MessageBubble({
 
 // ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function ConversationScreen() {
+  const { user } = useAuth();
   const {
     messages, voiceState, fromLang, toLang,
     sendText, clearMessages, errorMessage, clearError,
@@ -301,7 +303,7 @@ export default function ConversationScreen() {
               }}
             >
               {isVapiActive ? <PhoneOff size={13} /> : <PhoneCall size={13} />}
-              {isVapiActive ? 'End Vapi' : 'Vapi AI Call'}
+              {isVapiActive ? ui.vapiEnd : ui.vapiCall}
             </motion.button>
             <motion.button
               id="clear-conversation"
@@ -366,6 +368,7 @@ export default function ConversationScreen() {
               onPlay={handlePlayMessage}
               onCopy={handleCopy}
               ui={ui}
+              user={user}
             />
           ))}
         </AnimatePresence>

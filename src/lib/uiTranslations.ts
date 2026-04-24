@@ -22,6 +22,21 @@ export interface UIStrings {
   optSlowSpeech: string; optSlowSpeechDesc: string; optHighContrast: string; optHighContrastDesc: string;
   optAudioFeedback: string; optAudioFeedbackDesc: string; optDyslexiaFont: string; optDyslexiaFontDesc: string;
   emergencyTitle: string;
+  loginSignIn: string; loginCreateAccount: string; loginWelcome: string; loginJoin: string;
+  loginSubtitle: string; loginEmail: string; loginPassword: string; loginFullName: string;
+  loginActionFailed: string; loginEmailNotConfirmed: string; loginCheckMail: string;
+  loginSentCode: string; loginEnterCode: string; loginVerifyContinue: string;
+  loginWrongEmail: string; loginNoAccount: string; loginAlreadyAccount: string;
+  loginSignUpFree: string; loginSignInAction: string; loginStartBreaking: string;
+  loginHistoryPro: string;
+  emergencyActive: string; emergencyCallHelp: string; emergencyCalling: string;
+  emergencySendLocation: string; emergencySent: string; emergencySpeakMsg: string;
+  emergencyRecording: string; emergencySelectLang: string; emergencyQuickPhrases: string;
+  emergencyPrivacy: string; emergencyPrivacyDesc: string; emergencyNotice: string;
+  vapiEnd: string; vapiCall: string;
+  minutes: string; save: string; saving: string; cancel: string;
+  sessionReminders: string; controlData: string; view: string;
+  searchLanguages: string; guest: string; free: string; msgs: string;
 }
 
 const EN: UIStrings = {
@@ -56,6 +71,22 @@ const EN: UIStrings = {
   optAudioFeedback: 'Audio Feedback', optAudioFeedbackDesc: 'Sound effects for app interactions',
   optDyslexiaFont: 'Dyslexia Font', optDyslexiaFontDesc: 'Font optimized for easier reading',
   emergencyTitle: 'Emergency',
+  loginSignIn: 'Sign In', loginCreateAccount: 'Create Account', loginWelcome: 'Welcome back 👋', loginJoin: 'Join VoiceBridge 🚀',
+  loginSubtitle: 'Your voice, understood everywhere', loginEmail: 'Email address', loginPassword: 'Password', loginFullName: 'Your full name',
+  loginActionFailed: 'Action Failed', loginEmailNotConfirmed: 'Email not confirmed', loginCheckMail: 'Check ur mail for the verifications',
+  loginSentCode: 'We sent a 6-digit code to', loginEnterCode: 'Enter 6-digit code', loginVerifyContinue: 'Verify & Continue',
+  loginWrongEmail: 'Wrong email? Go back', loginNoAccount: "Don't have an account?", loginAlreadyAccount: 'Already have an account?',
+  loginSignUpFree: 'Sign up free', loginSignInAction: 'Sign in', loginStartBreaking: 'Start breaking language barriers today. Just name, email and password.',
+  loginHistoryPro: 'Sign in to access your translation history and pro features.',
+  emergencyActive: 'ACTIVE — Help is available', emergencyCallHelp: 'Call Help', emergencyCalling: 'Calling 112…',
+  emergencySendLocation: 'Send Location', emergencySent: '✓ Sent!', emergencySpeakMsg: 'Speak Emergency Message',
+  emergencyRecording: 'Recording emergency message…', emergencySelectLang: 'Select Language', emergencyQuickPhrases: 'Quick Phrases',
+  emergencyPrivacy: 'Privacy & Security', emergencyPrivacyDesc: 'Your emergency audio message is recorded securely, heavily encrypted on your device, and translated privately. The data is dispatched only to your designated contacts and is never stored persistently on our servers.',
+  emergencyNotice: 'Emergency mode sends your location and pre-filled messages to your emergency contact. Always call local emergency services (112/911) for immediate danger.',
+  vapiEnd: 'End Vapi', vapiCall: 'Vapi AI Call',
+  minutes: 'Minutes', save: 'Save', saving: 'Saving...', cancel: 'Cancel',
+  sessionReminders: 'Session reminders & updates', controlData: 'Control your data and recordings', view: 'View',
+  searchLanguages: 'Search languages...', guest: 'Guest', free: 'Free', msgs: 'msgs',
 };
 
 const HI: UIStrings = {
@@ -90,6 +121,22 @@ const HI: UIStrings = {
   optAudioFeedback: 'ऑडियो प्रतिक्रिया', optAudioFeedbackDesc: 'ऐप कार्यों के लिए ध्वनि प्रभाव',
   optDyslexiaFont: 'डिस्लेक्सिया फ़ॉन्ट', optDyslexiaFontDesc: 'बेहतर ढंग से पढ़ने के लिए विशेष फ़ॉन्ट',
   emergencyTitle: 'आपातकाल',
+  loginSignIn: 'साइन इन', loginCreateAccount: 'खाता बनाएँ', loginWelcome: 'वापसी पर स्वागत है 👋', loginJoin: 'VoiceBridge से जुड़ें 🚀',
+  loginSubtitle: 'आपकी आवाज़, हर जगह समझी जाती है', loginEmail: 'ईमेल पता', loginPassword: 'पासवर्ड', loginFullName: 'आपका पूरा नाम',
+  loginActionFailed: 'कार्रवाई विफल', loginEmailNotConfirmed: 'ईमेल की पुष्टि नहीं हुई', loginCheckMail: 'सत्यापन के लिए अपना मेल देखें',
+  loginSentCode: 'हमने 6-अंकों का कोड भेजा है', loginEnterCode: '6-अंकों का कोड दर्ज करें', loginVerifyContinue: 'सत्यापित करें और जारी रखें',
+  loginWrongEmail: 'गलत ईमेल? वापस जाएं', loginNoAccount: 'खाता नहीं है?', loginAlreadyAccount: 'पहले से ही खाता है?',
+  loginSignUpFree: 'मुफ्त साइन अप करें', loginSignInAction: 'साइन इन करें', loginStartBreaking: 'आज ही भाषा की बाधाओं को तोड़ना शुरू करें। बस नाम, ईमेल और पासवर्ड।',
+  loginHistoryPro: 'अपने अनुवाद इतिहास और प्रो सुविधाओं तक पहुँचने के लिए साइन इन करें।',
+  emergencyActive: 'सक्रिय — मदद उपलब्ध है', emergencyCallHelp: 'मदद बुलाएं', emergencyCalling: '112 डायल कर रहा है…',
+  emergencySendLocation: 'लोकेशन भेजें', emergencySent: '✓ भेजा गया!', emergencySpeakMsg: 'आपातकालीन संदेश बोलें',
+  emergencyRecording: 'संदेश रिकॉर्ड हो रहा है…', emergencySelectLang: 'भाषा चुनें', emergencyQuickPhrases: 'त्वरित वाक्यांश',
+  emergencyPrivacy: 'गोपनीयता और सुरक्षा', emergencyPrivacyDesc: 'आपका आपातकालीन ऑडियो संदेश सुरक्षित रूप से रिकॉर्ड किया जाता है, एन्क्रिप्ट किया जाता है, और निजी तौर पर अनुवादित किया जाता है। डेटा केवल आपके संपर्कों को भेजा जाता है और हमारे सर्वर पर सहेजा नहीं जाता है।',
+  emergencyNotice: 'आपातकालीन मोड आपका स्थान और पहले से भरे हुए संदेश भेजता है। तत्काल खतरे के लिए हमेशा 112 डायल करें।',
+  vapiEnd: 'वापी समाप्त करें', vapiCall: 'वापी AI कॉल',
+  minutes: 'मिनट', save: 'सहेजें', saving: 'सहेज रहा है...', cancel: 'रद्द करें',
+  sessionReminders: 'सत्र अनुस्मारक और अपडेट', controlData: 'अपने डेटा और रिकॉर्डिंग को नियंत्रित करें', view: 'देखें',
+  searchLanguages: 'भाषाएं खोजें...', guest: 'अतिथि', free: 'मुफ्त', msgs: 'संदेश',
 };
 
 function makeSimple(base: Partial<UIStrings> = {}): UIStrings {

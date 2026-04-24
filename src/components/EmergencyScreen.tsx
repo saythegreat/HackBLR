@@ -5,6 +5,7 @@ import { useTTS } from '@/hooks/useTTS';
 import { useVoice } from '@/context/VoiceContext';
 import { Phone, MapPin, Mic, AlertTriangle, Shield, Volume2, MessageSquare, Lock } from 'lucide-react';
 import { LANGUAGES as LANG_LIST } from '@/lib/languages';
+import { getUIStrings } from '@/lib/uiTranslations';
 
 const EMERGENCY_PHRASES: Record<string, string>[] = [
   { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助', bn: 'আমার সাহায্য দরকার', ta: 'எனக்கு உதவி வேண்டும்', te: 'నాకు సహాయం కావాలి', kn: 'ನನಗೆ ಸಹಾಯ ಬೇಕು', ml: 'എനിക്ക് സഹായം വേണം', mr: 'मला मदत हवी आहे', gu: 'મને મદદ જોઈએ છે', pa: 'ਮੈਨੂੰ ਮਦਦ ਚਾਹੀਦੀ ਹੈ', ur: 'مجھے مدد چاہیے', fr: "J'ai besoin d'aide", de: 'Ich brauche Hilfe', ja: '助けてください', ko: '도움이 필요합니다', pt: 'Preciso de ajuda', ru: 'Мне нужна помощь', it: 'Ho bisogno di aiuto' },
@@ -17,23 +18,7 @@ const EMERGENCY_PHRASES: Record<string, string>[] = [
 
 export default function EmergencyScreen() {
   const { fromLang } = useVoice();
-  const isHi = fromLang?.label === 'Hindi';
-
-  const uiText = {
-    title: isHi ? 'आपातकालीन मोड' : 'Emergency Mode',
-    activeText: isHi ? 'सक्रिय — मदद उपलब्ध है' : 'ACTIVE — Help is available',
-    callHelp: isHi ? 'मदद बुलाएं' : 'Call Help',
-    calling112: isHi ? '112 डायल कर रहा है…' : 'Calling 112…',
-    sendLocation: isHi ? 'लोकेशन भेजें' : 'Send Location',
-    sent: isHi ? '✓ भेजा गया!' : '✓ Sent!',
-    speakMsg: isHi ? 'आपातकालीन संदेश बोलें' : 'Speak Emergency Message',
-    recording: isHi ? 'संदेश रिकॉर्ड हो रहा है…' : 'Recording emergency message…',
-    selectLang: isHi ? 'भाषा चुनें' : 'Select Language',
-    quickPhrases: isHi ? 'त्वरित वाक्यांश' : 'Quick Phrases',
-    privacy: isHi ? 'गोपनीयता और सुरक्षा' : 'Privacy & Security',
-    privacyDesc: isHi ? 'आपका आपातकालीन ऑडियो संदेश सुरक्षित रूप से रिकॉर्ड किया जाता है, एन्क्रिप्ट किया जाता है, और निजी तौर पर अनुवादित किया जाता है। डेटा केवल आपके संपर्कों को भेजा जाता है और हमारे सर्वर पर सहेजा नहीं जाता है।' : 'Your emergency audio message is recorded securely, heavily encrypted on your device, and translated privately. The data is dispatched only to your designated contacts and is never stored persistently on our servers.',
-    notice: isHi ? 'आपातकालीन मोड आपका स्थान और पहले से भरे हुए संदेश भेजता है। तत्काल खतरे के लिए हमेशा 112 डायल करें।' : 'Emergency mode sends your location and pre-filled messages to your emergency contact. Always call local emergency services (112/911) for immediate danger.',
-  };
+  const ui = getUIStrings(fromLang.label);
 
   const [activeLang, setActiveLang] = useState<string>(fromLang?.code || 'en');
   const [isCallActive, setIsCallActive] = useState(false);
@@ -101,14 +86,14 @@ export default function EmergencyScreen() {
             <AlertTriangle size={18} color="white" />
           </motion.div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fca5a5' }}>{uiText.title}</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fca5a5' }}>{ui.emergencyTitle}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <motion.div
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
                 style={{ width: 6, height: 6, borderRadius: 3, background: '#ef4444' }}
               />
-              <span style={{ fontSize: 11, color: '#f87171', fontWeight: 500 }}>{uiText.activeText}</span>
+              <span style={{ fontSize: 11, color: '#f87171', fontWeight: 500 }}>{ui.emergencyActive}</span>
             </div>
           </div>
         </div>
@@ -144,7 +129,7 @@ export default function EmergencyScreen() {
             }}
           >
             <Phone size={24} />
-            {isCallActive ? uiText.calling112 : uiText.callHelp}
+            {isCallActive ? ui.emergencyCalling : ui.emergencyCallHelp}
           </motion.button>
 
           {/* Send Location */}
@@ -166,7 +151,7 @@ export default function EmergencyScreen() {
             }}
           >
             <MapPin size={24} />
-            {locationSent ? uiText.sent : uiText.sendLocation}
+            {locationSent ? ui.emergencySent : ui.emergencySendLocation}
           </motion.button>
         </motion.div>
 
@@ -190,7 +175,7 @@ export default function EmergencyScreen() {
           <motion.div animate={isRecording ? { scale: [1, 1.2, 1] } : {}} transition={{ repeat: Infinity, duration: 0.5 }}>
             <Mic size={22} />
           </motion.div>
-          {isRecording ? uiText.recording : uiText.speakMsg}
+          {isRecording ? ui.emergencyRecording : ui.emergencySpeakMsg}
         </motion.button>
 
         {/* Language Selector */}
@@ -200,7 +185,7 @@ export default function EmergencyScreen() {
           transition={{ delay: 0.2 }}
         >
           <div style={{ fontSize: 11, fontWeight: 600, color: '#f87171', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            {uiText.selectLang}
+            {ui.emergencySelectLang}
           </div>
           <div style={{ position: 'relative' }}>
             <select
@@ -239,7 +224,7 @@ export default function EmergencyScreen() {
           transition={{ delay: 0.25 }}
         >
           <div style={{ fontSize: 11, fontWeight: 600, color: '#f87171', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            {uiText.quickPhrases}
+            {ui.emergencyQuickPhrases}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {EMERGENCY_PHRASES.map((phraseObj, i) => {
@@ -303,7 +288,7 @@ export default function EmergencyScreen() {
         >
           <Shield size={14} style={{ color: '#f87171', flexShrink: 0, marginTop: 2 }} />
           <p style={{ fontSize: 11, color: '#f87171', lineHeight: 1.6, opacity: 0.8 }}>
-            {uiText.notice}
+            {ui.emergencyNotice}
           </p>
         </motion.div>
 
@@ -320,9 +305,9 @@ export default function EmergencyScreen() {
         >
           <Lock size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
           <div>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{uiText.privacy}</h3>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{ui.emergencyPrivacy}</h3>
             <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              {uiText.privacyDesc}
+              {ui.emergencyPrivacyDesc}
             </p>
           </div>
         </motion.div>
