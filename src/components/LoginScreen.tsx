@@ -212,6 +212,16 @@ export default function LoginScreen() {
                       value={otp}
                       onChange={setOtp}
                     />
+
+                    <div style={{ textAlign: 'center' }}>
+                      <button 
+                        type="button"
+                        onClick={() => alert(testModeHint || "Please check your spam folder or wait a few minutes.")}
+                        style={{ background: 'transparent', border: 'none', color: '#a78bfa', fontSize: 12, cursor: 'pointer', fontWeight: 600 }}
+                      >
+                        Didn't receive an email?
+                      </button>
+                    </div>
                     
                     {error && (
                       <motion.div
