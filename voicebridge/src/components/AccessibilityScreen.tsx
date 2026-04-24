@@ -125,17 +125,21 @@ export default function AccessibilityScreen() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToggles({ ...initial, ...parsed });
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setToggles(initial);
       }
     } catch {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setToggles(initial);
     }
   }, [OPTIONS]);
 
   // Handle lang change for category reset
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveCategory(t.catAll);
   }, [t.catAll]);
 

@@ -1,5 +1,5 @@
 // Shared language definitions used across Recognition, Synthesis, and UI
-import { useMemo } from 'react';
+// Shared language definitions used across Recognition, Synthesis, and UI
 
 export interface Language {
   code: string;       // internal key

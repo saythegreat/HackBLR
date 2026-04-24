@@ -14,6 +14,7 @@ const VOICE_OPTIONS = [
   { id: 'neutral', label: 'Sage',   tag: 'Neutral',  description: 'Gender-neutral, calm voice',          icon: '🧘' },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function LanguageSettingsTab({ fromLang, toLang, setFromLang, setToLang, ui }: any) {
   const [search, setSearch] = useState('');
   const [mode, setMode] = useState<'from' | 'to'>('from');

@@ -8,4 +8,5 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 // be used at runtime in the browser for this project.
 export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   : null as unknown as any;

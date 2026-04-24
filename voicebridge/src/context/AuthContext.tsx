@@ -133,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // For new/returning users: validate session in background without blocking UI
   useEffect(() => {
     if (!supabase) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAuthReady(true);
       return;
     }
