@@ -29,7 +29,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
       className="glass"
       style={{
         position: 'fixed',
-        bottom: 16,
+        bottom: 'calc(16px + var(--sab, 0px))',
         left: '50%',
         transform: 'translateX(-50%)',
         width: 'calc(100% - 32px)',

@@ -1,7 +1,7 @@
 'use client';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { User, Bell, LogOut, ChevronRight, Clock, Check, Edit2 } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { User, Bell, LogOut, ChevronRight, Clock, Check, Edit2, Search, Globe, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useVoice } from '@/context/VoiceContext';
 import { LANGUAGES as LANG_LIST } from '@/lib/languages';
@@ -14,37 +14,133 @@ const VOICE_OPTIONS = [
   { id: 'neutral', label: 'Sage',   tag: 'Neutral',  description: 'Gender-neutral, calm voice',          icon: '🧘' },
 ];
 
+function LanguageSettingsTab({ fromLang, toLang, setFromLang, setToLang, ui }: any) {
+  const [search, setSearch] = useState('');
+  const [mode, setMode] = useState<'from' | 'to'>('from');
 
+  const filtered = useMemo(() => LANG_LIST.filter(l => 
+    l.label.toLowerCase().includes(search.toLowerCase()) || 
+    l.code.toLowerCase().includes(search.toLowerCase())
+  ), [search]);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      {/* Selector Mode */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 4 }}>
+        <button 
+          onClick={() => setMode('from')}
+          style={{ 
+            flex: 1, padding: '8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: mode === 'from' ? 'rgba(124,58,237,0.2)' : 'transparent',
+            color: mode === 'from' ? '#c084fc' : 'var(--text-muted)',
+            fontSize: 12, fontWeight: 600, transition: 'all 0.2s'
+          }}
+        >
+          {ui.fromLabel}
+        </button>
+        <button 
+          onClick={() => setMode('to')}
+          style={{ 
+            flex: 1, padding: '8px', borderRadius: 8, border: 'none', cursor: 'pointer',
+            background: mode === 'to' ? 'rgba(124,58,237,0.2)' : 'transparent',
+            color: mode === 'to' ? '#c084fc' : 'var(--text-muted)',
+            fontSize: 12, fontWeight: 600, transition: 'all 0.2s'
+          }}
+        >
+          {ui.toLabel}
+        </button>
+      </div>
+
+      <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#080b14', paddingBottom: 16 }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, color: 'var(--text-muted)' }} />
+          <input 
+            placeholder="Search languages..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ 
+              width: '100%', padding: '12px 12px 12px 36px', borderRadius: 12, 
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white', fontSize: 14, outline: 'none'
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        {filtered.map((lang) => {
+          const isSelected = mode === 'from' ? fromLang.code === lang.code : toLang.code === lang.code;
+          return (
+            <div
+              key={lang.code}
+              onClick={() => { mode === 'from' ? setFromLang(lang) : setToLang(lang); }}
+              className={`glass glass-hover ${isSelected ? 'selected' : ''}`}
+              style={{ 
+                padding: '12px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
+                borderColor: isSelected ? 'rgba(124,58,237,0.5)' : undefined,
+                background: isSelected ? 'rgba(124,58,237,0.1)' : undefined,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{lang.flag}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lang.label}</div>
+              </div>
+              {isSelected && <Check size={14} color="#c084fc" />}
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+}
 
 export default function SettingsScreen() {
   const { user, sessions, totalMinutes, totalLanguages, logout } = useAuth();
   const { fromLang, toLang, setFromLang, setToLang, sessionCount } = useVoice();
   const ui = getUIStrings(fromLang.label);
 
-  const [selectedVoice, setSelectedVoice] = useState('nova');
-  const [activeTab, setActiveTab] = useState<'profile' | 'voice' | 'languages' | 'history'>('profile');
+  const [selectedVoice, setSelectedVoiceState] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('vb_voice_id') || 'nova';
+    }
+    return 'nova';
+  });
+
+  const setSelectedVoice = (id: string) => {
+    setSelectedVoiceState(id);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vb_voice_id', id);
+    }
+  };
+
+  const [activeTab, setActiveTab] = useState<'profile' | 'voice' | 'languages' | 'history'>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('vb_settings_init_tab');
+      if (stored) {
+        localStorage.removeItem('vb_settings_init_tab');
+        return stored as 'history';
+      }
+    }
+    return 'profile';
+  });
   const [notifications, setNotifications] = useState(true);
 
-  // Combine voice-context session count with stored session history
   const displaySessionCount = sessions.length > 0 ? sessions.length : sessionCount;
   const displayMinutes = totalMinutes > 0 ? totalMinutes : 0;
   const displayLanguages = totalLanguages > 0 ? totalLanguages : 2;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         style={{ padding: '24px 20px 0' }}
       >
-        {/* Profile Card */}
         <div style={{
           background: 'linear-gradient(135deg, rgba(124,58,237,0.2), rgba(99,102,241,0.1))',
           border: '1px solid rgba(124,58,237,0.3)', borderRadius: 24, padding: '20px',
           marginBottom: 20, position: 'relative', overflow: 'hidden',
         }}>
-          {/* Background pattern */}
           <div style={{
             position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%',
             background: 'radial-gradient(circle, rgba(124,58,237,0.2), transparent)',
@@ -66,9 +162,9 @@ export default function SettingsScreen() {
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 2 }}>{user?.email ?? ''}</div>
               <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
                 {[
-                  { label: 'Sessions',  value: displaySessionCount.toString() },
-                  { label: 'Languages', value: displayLanguages.toString() },
-                  { label: 'Minutes',   value: displayMinutes.toString() },
+                  { label: ui.statSessions,  value: displaySessionCount.toString() },
+                  { label: ui.statLanguages, value: displayLanguages.toString() },
+                  { label: ui.profileTab === 'Profile' ? 'Minutes' : 'मिनट',   value: displayMinutes.toString() },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#c084fc' }}>{s.value}</div>
@@ -87,7 +183,6 @@ export default function SettingsScreen() {
           </div>
         </div>
 
-        {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 14, padding: 4 }}>
           {(['profile', 'voice', 'languages', 'history'] as const).map((tab) => {
             const tabLabels = {
@@ -117,15 +212,13 @@ export default function SettingsScreen() {
         </div>
       </motion.div>
 
-      {/* Content */}
       <div style={{ padding: '0 20px 100px', flex: 1, overflowY: 'auto' }}>
 
-        {/* ── Profile Tab ── */}
         {activeTab === 'profile' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {[
-              { id: 'notifications', icon: <Bell size={16} />, label: 'Notifications', desc: 'Session reminders & updates', value: notifications ? 'On' : 'Off', onClick: () => setNotifications(v => !v) },
-              { id: 'privacy',       icon: <User size={16} />, label: 'Privacy & Data', desc: 'Control your data and recordings', value: 'View' },
+              { id: 'notifications', icon: <Bell size={16} />, label: ui.notifications, desc: ui.profileTab === 'Profile' ? 'Session reminders & updates' : 'सत्र अनुस्मारक और अपडेट', value: notifications ? 'On' : 'Off', onClick: () => setNotifications(v => !v) },
+              { id: 'privacy',       icon: <User size={16} />, label: ui.privacyData, desc: ui.profileTab === 'Profile' ? 'Control your data and recordings' : 'अपना डेटा और रिकॉर्डिंग नियंत्रित करें', value: 'View' },
             ].map((item, i) => (
               <motion.div key={item.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
                 <div
@@ -148,7 +241,6 @@ export default function SettingsScreen() {
               </motion.div>
             ))}
 
-            {/* Sign Out button */}
             <motion.button
               id="sign-out"
               initial={{ opacity: 0 }}
@@ -169,10 +261,9 @@ export default function SettingsScreen() {
           </motion.div>
         )}
 
-        {/* ── Voice Tab ── */}
         {activeTab === 'voice' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Voice Selection</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>{ui.voiceSelection}</div>
             {VOICE_OPTIONS.map((voice, i) => (
               <motion.div key={voice.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}>
                 <div
@@ -207,71 +298,12 @@ export default function SettingsScreen() {
         )}
 
         {/* ── Languages Tab ── */}
-        {activeTab === 'languages' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Primary Language</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {LANGUAGES.map((lang, i) => {
-                  const isSelected = fromLang.code === lang.code;
-                  return (
-                    <motion.button
-                      id={`primary-lang-${lang.code}`}
-                      key={lang.code}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.04 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        const found = LANG_LIST.find(l => l.code === lang.code);
-                        if (found) setFromLang(found);
-                      }}
-                      className={`lang-card ${isSelected ? 'selected' : ''}`}
-                      style={{ justifyContent: 'flex-start' }}
-                    >
-                      <span style={{ fontSize: 20 }}>{lang.flag}</span>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{lang.label}</span>
-                      {isSelected && <Check size={12} style={{ marginLeft: 'auto', color: '#a78bfa' }} />}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Target Language</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {LANGUAGES.map((lang, i) => {
-                  const isSelected = toLang.code === lang.code;
-                  return (
-                    <motion.button
-                      id={`target-lang-${lang.code}`}
-                      key={lang.code}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.04 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        const found = LANG_LIST.find(l => l.code === lang.code);
-                        if (found) setToLang(found);
-                      }}
-                      className={`lang-card ${isSelected ? 'selected' : ''}`}
-                      style={{ justifyContent: 'flex-start' }}
-                    >
-                      <span style={{ fontSize: 20 }}>{lang.flag}</span>
-                      <span style={{ fontSize: 13, fontWeight: 500 }}>{lang.label}</span>
-                      {isSelected && <Check size={12} style={{ marginLeft: 'auto', color: '#a78bfa' }} />}
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-          </motion.div>
-        )}
+        {activeTab === 'languages' && <LanguageSettingsTab fromLang={fromLang} toLang={toLang} setFromLang={setFromLang} setToLang={setToLang} ui={ui} />}
 
         {/* ── History Tab ── */}
         {activeTab === 'history' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>Recent Sessions</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 10 }}>{ui.recentSessions}</div>
             {sessions.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -279,9 +311,9 @@ export default function SettingsScreen() {
                 style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-muted)', fontSize: 14 }}
               >
                 <div style={{ fontSize: 40, marginBottom: 12 }}>🎙️</div>
-                <div style={{ fontWeight: 600, marginBottom: 6 }}>No sessions yet</div>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>{ui.noSessionsYet}</div>
                 <div style={{ fontSize: 12, lineHeight: 1.6 }}>
-                  Complete a translation on the Home screen to see your history here.
+                  {ui.noSessionsHint}
                 </div>
               </motion.div>
             ) : (

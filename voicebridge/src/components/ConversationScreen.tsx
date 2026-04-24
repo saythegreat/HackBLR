@@ -194,20 +194,27 @@ export default function ConversationScreen() {
 
   const ui = getUIStrings(fromLang.label);
   const [inputText, setInputText] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
+  const isRecording = voiceState === 'listening';
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Vapi integration
-  const vapi = useRef<any>(null);
+  const vapi = useRef<Vapi | null>(null);
   const [isVapiActive, setIsVapiActive] = useState(false);
 
   useEffect(() => {
-    vapi.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "dummy-key");
-    const onCallStart = () => setIsVapiActive(true);
-    const onCallEnd = () => setIsVapiActive(false);
+    const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY;
+    if (publicKey && publicKey !== "dummy-key") {
+      try {
+        vapi.current = new Vapi(publicKey);
+        const onCallStart = () => setIsVapiActive(true);
+        const onCallEnd = () => setIsVapiActive(false);
 
-    vapi.current.on('call-start', onCallStart);
-    vapi.current.on('call-end', onCallEnd);
+        vapi.current.on('call-start', onCallStart);
+        vapi.current.on('call-end', onCallEnd);
+      } catch (err) {
+        console.warn('Vapi setup failed:', err);
+      }
+    }
 
     return () => {
       vapi.current?.stop();
@@ -215,10 +222,24 @@ export default function ConversationScreen() {
   }, []);
 
   const toggleVapi = () => {
+    if (!vapi.current) {
+      alert("Vapi AI Call is unavailable. Missing NEXT_PUBLIC_VAPI_PUBLIC_KEY in your environment setup.");
+      return;
+    }
+    
     if (isVapiActive) {
-      vapi.current?.stop();
+      vapi.current.stop();
     } else {
-      vapi.current?.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "dummy-assistant");
+      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+      if (!assistantId || assistantId === "dummy-assistant") {
+        alert("Vapi Assistant ID is missing. Please add NEXT_PUBLIC_VAPI_ASSISTANT_ID to your environment.");
+        return;
+      }
+      try {
+        vapi.current.start(assistantId);
+      } catch (e) {
+        console.warn("Vapi start error:", e);
+      }
     }
   };
 
@@ -237,17 +258,12 @@ export default function ConversationScreen() {
 
   const handleVoiceRecord = useCallback(() => {
     if (isRecording) {
-      setIsRecording(false);
       stopListening();
     } else {
-      setIsRecording(true);
       startListening();
     }
   }, [isRecording, startListening, stopListening]);
 
-  useEffect(() => {
-    if (voiceState !== 'listening') setIsRecording(false);
-  }, [voiceState]);
 
   const handlePlayMessage = useCallback((text: string, langLabel: string) => {
     speakText(text, langLabel);

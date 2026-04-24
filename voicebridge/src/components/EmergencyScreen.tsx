@@ -1,27 +1,51 @@
 'use client';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { Phone, MapPin, Mic, AlertTriangle, Shield, Siren, Volume2, MessageSquare } from 'lucide-react';
+import { useTTS } from '@/hooks/useTTS';
+import { useVoice } from '@/context/VoiceContext';
+import { Phone, MapPin, Mic, AlertTriangle, Shield, Volume2, MessageSquare, Lock } from 'lucide-react';
+import { LANGUAGES as LANG_LIST } from '@/lib/languages';
 
-const EMERGENCY_PHRASES = [
+const EMERGENCY_PHRASES: Record<string, string>[] = [
   { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助' },
-  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llama una ambulancia', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车' },
+  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llama una ambulance', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车' },
   { en: 'I am lost', hi: 'मैं खो गया हूँ', es: 'Estoy perdido', ar: 'لقد ضعت', zh: '我迷路了' },
   { en: 'I cannot breathe', hi: 'मुझे सांस नहीं आ रही', es: 'No puedo respirar', ar: 'لا أستطيع التنفس', zh: '我无法呼吸' },
   { en: 'I have an allergy', hi: 'मुझे एलर्जी है', es: 'Tengo alergia', ar: 'لدي حساسية', zh: '我有过敏' },
 ];
 
-const LANG_LABELS: { [key: string]: string } = {
-  en: '🇬🇧 EN', hi: '🇮🇳 HI', es: '🇪🇸 ES', ar: '🇸🇦 AR', zh: '🇨🇳 ZH',
-};
 
 export default function EmergencyScreen() {
-  const [activeLang, setActiveLang] = useState<'en' | 'hi' | 'es' | 'ar' | 'zh'>('en');
+  const { fromLang } = useVoice();
+  const isHi = fromLang?.label === 'Hindi';
+
+  const uiText = {
+    title: isHi ? 'आपातकालीन मोड' : 'Emergency Mode',
+    activeText: isHi ? 'सक्रिय — मदद उपलब्ध है' : 'ACTIVE — Help is available',
+    callHelp: isHi ? 'मदद बुलाएं' : 'Call Help',
+    calling112: isHi ? '112 डायल कर रहा है…' : 'Calling 112…',
+    sendLocation: isHi ? 'लोकेशन भेजें' : 'Send Location',
+    sent: isHi ? '✓ भेजा गया!' : '✓ Sent!',
+    speakMsg: isHi ? 'आपातकालीन संदेश बोलें' : 'Speak Emergency Message',
+    recording: isHi ? 'संदेश रिकॉर्ड हो रहा है…' : 'Recording emergency message…',
+    selectLang: isHi ? 'भाषा चुनें' : 'Select Language',
+    quickPhrases: isHi ? 'त्वरित वाक्यांश' : 'Quick Phrases',
+    privacy: isHi ? 'गोपनीयता और सुरक्षा' : 'Privacy & Security',
+    privacyDesc: isHi ? 'आपका आपातकालीन ऑडियो संदेश सुरक्षित रूप से रिकॉर्ड किया जाता है, एन्क्रिप्ट किया जाता है, और निजी तौर पर अनुवादित किया जाता है। डेटा केवल आपके संपर्कों को भेजा जाता है और हमारे सर्वर पर सहेजा नहीं जाता है।' : 'Your emergency audio message is recorded securely, heavily encrypted on your device, and translated privately. The data is dispatched only to your designated contacts and is never stored persistently on our servers.',
+    notice: isHi ? 'आपातकालीन मोड आपका स्थान और पहले से भरे हुए संदेश भेजता है। तत्काल खतरे के लिए हमेशा 112 डायल करें।' : 'Emergency mode sends your location and pre-filled messages to your emergency contact. Always call local emergency services (112/911) for immediate danger.',
+  };
+
+  const [activeLang, setActiveLang] = useState<string>('en');
   const [isCallActive, setIsCallActive] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [locationSent, setLocationSent] = useState(false);
   const [speakingPhrase, setSpeakingPhrase] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  
+  // Use TTS engine to play the emergency phrases
+  const { speak } = useTTS({
+    onStart: () => {},
+    onEnd: () => setSpeakingPhrase(null),
+  });
 
   const handleCall = () => {
     setIsCallActive(true);
@@ -35,7 +59,8 @@ export default function EmergencyScreen() {
 
   const handleSpeakPhrase = (phrase: string) => {
     setSpeakingPhrase(phrase);
-    setTimeout(() => setSpeakingPhrase(null), 2000);
+    const selectedLangObj = LANG_LIST.find(l => l.code === activeLang) || LANG_LIST[0];
+    speak(phrase, selectedLangObj.label);
   };
 
   const handleSpeak = () => {
@@ -69,14 +94,14 @@ export default function EmergencyScreen() {
             <AlertTriangle size={18} color="white" />
           </motion.div>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fca5a5' }}>Emergency Mode</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fca5a5' }}>{uiText.title}</h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <motion.div
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
                 style={{ width: 6, height: 6, borderRadius: 3, background: '#ef4444' }}
               />
-              <span style={{ fontSize: 11, color: '#f87171', fontWeight: 500 }}>ACTIVE — Help is available</span>
+              <span style={{ fontSize: 11, color: '#f87171', fontWeight: 500 }}>{uiText.activeText}</span>
             </div>
           </div>
         </div>
@@ -112,7 +137,7 @@ export default function EmergencyScreen() {
             }}
           >
             <Phone size={24} />
-            {isCallActive ? 'Calling 112…' : 'Call Help'}
+            {isCallActive ? uiText.calling112 : uiText.callHelp}
           </motion.button>
 
           {/* Send Location */}
@@ -134,7 +159,7 @@ export default function EmergencyScreen() {
             }}
           >
             <MapPin size={24} />
-            {locationSent ? '✓ Sent!' : 'Send Location'}
+            {locationSent ? uiText.sent : uiText.sendLocation}
           </motion.button>
         </motion.div>
 
@@ -158,7 +183,7 @@ export default function EmergencyScreen() {
           <motion.div animate={isRecording ? { scale: [1, 1.2, 1] } : {}} transition={{ repeat: Infinity, duration: 0.5 }}>
             <Mic size={22} />
           </motion.div>
-          {isRecording ? 'Recording emergency message…' : 'Speak Emergency Message'}
+          {isRecording ? uiText.recording : uiText.speakMsg}
         </motion.button>
 
         {/* Language Selector */}
@@ -168,25 +193,35 @@ export default function EmergencyScreen() {
           transition={{ delay: 0.2 }}
         >
           <div style={{ fontSize: 11, fontWeight: 600, color: '#f87171', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            Select Language
+            {uiText.selectLang}
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
-            {Object.entries(LANG_LABELS).map(([code, label]) => (
-              <motion.button
-                key={code}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setActiveLang(code as typeof activeLang)}
-                style={{
-                  flex: 1, padding: '8px 4px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 600,
-                  background: activeLang === code ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.04)',
-                  color: activeLang === code ? '#fca5a5' : 'var(--text-muted)',
-                  boxShadow: activeLang === code ? '0 0 10px rgba(239,68,68,0.2)' : 'none',
-                  transition: 'all 0.25s',
-                }}
-              >
-                {label}
-              </motion.button>
-            ))}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={activeLang}
+              onChange={(e) => setActiveLang(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                borderRadius: 12,
+                border: '1px solid rgba(239,68,68,0.3)',
+                background: 'rgba(239,68,68,0.1)',
+                color: '#fca5a5',
+                fontSize: 14,
+                fontWeight: 600,
+                appearance: 'none',
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {LANG_LIST.map((lang) => (
+                <option key={lang.code} value={lang.code} style={{ background: '#1c1c1c', color: '#fca5a5' }}>
+                  {lang.flag} {lang.label}
+                </option>
+              ))}
+            </select>
+            <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#fca5a5' }}>
+              ▼
+            </div>
           </div>
         </motion.div>
 
@@ -197,22 +232,24 @@ export default function EmergencyScreen() {
           transition={{ delay: 0.25 }}
         >
           <div style={{ fontSize: 11, fontWeight: 600, color: '#f87171', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            Quick Phrases
+            {uiText.quickPhrases}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {EMERGENCY_PHRASES.map((phrase, i) => (
+            {EMERGENCY_PHRASES.map((phraseObj, i) => {
+              const translatedPhrase = phraseObj[activeLang] || phraseObj.en;
+              return (
               <motion.button
                 id={`phrase-${i}`}
                 key={i}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => handleSpeakPhrase(phrase[activeLang])}
+                onClick={() => handleSpeakPhrase(translatedPhrase)}
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 + 0.3 }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 16,
-                  background: speakingPhrase === phrase[activeLang] ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${speakingPhrase === phrase[activeLang] ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                  background: speakingPhrase === translatedPhrase ? 'rgba(239,68,68,0.18)' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${speakingPhrase === translatedPhrase ? 'rgba(239,68,68,0.4)' : 'rgba(255,255,255,0.07)'}`,
                   cursor: 'pointer', textAlign: 'left', transition: 'all 0.25s',
                 }}
               >
@@ -225,14 +262,14 @@ export default function EmergencyScreen() {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
-                    {phrase[activeLang]}
+                    {translatedPhrase}
                   </div>
-                  {activeLang !== 'en' && (
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{phrase.en}</div>
+                  {translatedPhrase !== phraseObj.en && (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{phraseObj.en}</div>
                   )}
                 </div>
-                <div style={{ color: speakingPhrase === phrase[activeLang] ? '#f87171' : 'var(--text-muted)' }}>
-                  {speakingPhrase === phrase[activeLang] ? (
+                <div style={{ color: speakingPhrase === translatedPhrase ? '#f87171' : 'var(--text-muted)' }}>
+                  {speakingPhrase === translatedPhrase ? (
                     <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 0.5 }}>
                       <Volume2 size={16} />
                     </motion.div>
@@ -241,7 +278,8 @@ export default function EmergencyScreen() {
                   )}
                 </div>
               </motion.button>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
@@ -258,9 +296,30 @@ export default function EmergencyScreen() {
         >
           <Shield size={14} style={{ color: '#f87171', flexShrink: 0, marginTop: 2 }} />
           <p style={{ fontSize: 11, color: '#f87171', lineHeight: 1.6, opacity: 0.8 }}>
-            Emergency mode sends your location and pre-filled messages to your emergency contact. Always call local emergency services (112/911) for immediate danger.
+            {uiText.notice}
           </p>
         </motion.div>
+
+        {/* Privacy Policy */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          style={{
+            padding: '12px 16px', borderRadius: 16,
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex', gap: 10, alignItems: 'flex-start',
+          }}
+        >
+          <Lock size={14} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>{uiText.privacy}</h3>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              {uiText.privacyDesc}
+            </p>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );

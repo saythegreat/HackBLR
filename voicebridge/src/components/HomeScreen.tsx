@@ -1,14 +1,19 @@
 'use client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Mic, MicOff, ChevronDown, Globe, Zap, Sparkles, AlertCircle, X } from 'lucide-react';
 import { useVoice } from '@/context/VoiceContext';
 import { LANGUAGES } from '@/lib/languages';
 import { getUIStrings } from '@/lib/uiTranslations';
+import { formatNumber } from '@/lib/utils';
 
 
 
-export default function HomeScreen() {
+interface HomeScreenProps {
+  onNavigate?: (screen: 'home' | 'conversation' | 'accessibility' | 'emergency' | 'settings') => void;
+}
+
+export default function HomeScreen({ onNavigate }: HomeScreenProps = {}) {
   const {
     fromLang, toLang, setFromLang, setToLang,
     voiceState, sessionCount, errorMessage, clearError,
@@ -27,6 +32,8 @@ export default function HomeScreen() {
 
   const [showFromDropdown, setShowFromDropdown] = useState(false);
   const [showToDropdown, setShowToDropdown]   = useState(false);
+
+  const filteredLanguages = useMemo(() => LANGUAGES, []);
 
   const cfg = stateConfig[voiceState];
   const isActive = voiceState !== 'idle';
@@ -74,7 +81,6 @@ export default function HomeScreen() {
           <span style={{ fontSize: 11, color: '#4ade80', fontWeight: 500 }}>{ui.aiReady}</span>
         </div>
       </motion.div>
-
       {/* ── Stats ─────────────────────────────────────────────────────── */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -83,9 +89,9 @@ export default function HomeScreen() {
         style={{ display: 'flex', gap: 8, marginBottom: 28 }}
       >
         {[
-          { label: ui.statSessions,  value: sessionCount.toString().padStart(2, '0') },
-          { label: ui.statLanguages, value: '50+' },
-          { label: ui.statAccuracy,  value: '99%' },
+          { label: ui.statSessions,  value: formatNumber(sessionCount, fromLang.label).padStart(2, '0') },
+          { label: ui.statLanguages, value: `${formatNumber(50, fromLang.label)}+` },
+          { label: ui.statAccuracy,  value: `${formatNumber(99, fromLang.label)}%` },
         ].map((stat) => (
           <div key={stat.label} className="glass" style={{ flex: 1, padding: '10px 12px', textAlign: 'center', borderRadius: 14 }}>
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
@@ -147,18 +153,19 @@ export default function HomeScreen() {
                 className="glass"
                 style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 50, maxHeight: 200, overflowY: 'auto', borderRadius: 16, padding: 8 }}
               >
-                {LANGUAGES.map(lang => (
+                {filteredLanguages.map(lang => (
                   <button
                     key={lang.code}
                     onClick={() => { setFromLang(lang); setShowFromDropdown(false); }}
                     style={{
-                      width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 10, fontSize: 13,
+                      width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 12, fontSize: 13,
                       background: lang.code === fromLang.code ? 'rgba(124,58,237,0.15)' : 'transparent',
                       border: 'none', color: 'var(--text-primary)', cursor: 'pointer',
-                      display: 'flex', gap: 8, alignItems: 'center', transition: 'background 0.2s',
+                      display: 'flex', gap: 10, alignItems: 'center', transition: 'background 0.2s',
                     }}
                   >
-                    <span>{lang.flag}</span><span>{lang.label}</span>
+                    <span style={{ fontSize: 18 }}>{lang.flag}</span>
+                    <span style={{ fontWeight: 500 }}>{lang.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -207,18 +214,19 @@ export default function HomeScreen() {
                 className="glass"
                 style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 50, maxHeight: 200, overflowY: 'auto', borderRadius: 16, padding: 8 }}
               >
-                {LANGUAGES.map(lang => (
+                {filteredLanguages.map(lang => (
                   <button
                     key={lang.code}
                     onClick={() => { setToLang(lang); setShowToDropdown(false); }}
                     style={{
-                      width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 10, fontSize: 13,
+                      width: '100%', textAlign: 'left', padding: '10px 12px', borderRadius: 12, fontSize: 13,
                       background: lang.code === toLang.code ? 'rgba(124,58,237,0.15)' : 'transparent',
                       border: 'none', color: 'var(--text-primary)', cursor: 'pointer',
-                      display: 'flex', gap: 8, alignItems: 'center', transition: 'background 0.2s',
+                      display: 'flex', gap: 10, alignItems: 'center', transition: 'background 0.2s',
                     }}
                   >
-                    <span>{lang.flag}</span><span>{lang.label}</span>
+                    <span style={{ fontSize: 18 }}>{lang.flag}</span>
+                    <span style={{ fontWeight: 500 }}>{lang.label}</span>
                   </button>
                 ))}
               </motion.div>
@@ -338,6 +346,13 @@ export default function HomeScreen() {
           <motion.button
             id={action.id}
             key={action.id}
+            onClick={() => {
+              if (action.id === 'quick-type') onNavigate?.('conversation');
+              if (action.id === 'quick-history') {
+                if (typeof window !== 'undefined') localStorage.setItem('vb_settings_init_tab', 'history');
+                onNavigate?.('settings');
+              }
+            }}
             whileTap={{ scale: 0.95 }}
             className="btn-secondary"
             style={{ flex: 1, padding: '10px 8px', fontSize: 11, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}

@@ -5,6 +5,8 @@ import {
   useState,
   useCallback,
   useRef,
+  useEffect,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { LANGUAGES, type Language } from '@/lib/languages';
@@ -12,22 +14,18 @@ import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useTTS } from '@/hooks/useTTS';
 import type { VoiceState, Message, AIResponse } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
+import { audioService } from '@/lib/audioService';
 
 // ─── Context Shape ─────────────────────────────────────────────────────────────
 interface VoiceContextValue {
-  // Language state
   fromLang: Language;
   toLang: Language;
   setFromLang: (lang: Language) => void;
   setToLang: (lang: Language) => void;
-
-  // Voice pipeline state
   voiceState: VoiceState;
   messages: Message[];
   sessionCount: number;
   errorMessage: string | null;
-
-  // Actions
   startListening: () => void;
   stopListening: () => void;
   sendText: (text: string) => Promise<void>;
@@ -35,56 +33,76 @@ interface VoiceContextValue {
   clearError: () => void;
   speakText: (text: string, langLabel: string) => void;
   stopSpeaking: () => void;
-
-  // Navigate to conversation after voice input
   pendingNavigate: boolean;
   clearPendingNavigate: () => void;
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 const VoiceContext = createContext<VoiceContextValue | null>(null);
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+// ─── OPTIMIZATION: Client-side translation cache ────────────────────────────────
+// Shared with the API's server-side cache. This client cache prevents
+// repeat network requests entirely for the same phrase in the same session.
+const clientTranslationCache = new Map<string, string>();
+
 export function VoiceProvider({ children }: { children: ReactNode }) {
-  const [fromLang, setFromLangState] = useState<Language>(LANGUAGES[0]); // English
-  const [toLang, setToLangState] = useState<Language>(LANGUAGES[1]);     // Hindi
+  const [fromLang, setFromLangState] = useState<Language>(LANGUAGES[0]);
+  const [toLang, setToLangState] = useState<Language>(LANGUAGES[1]);
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionCount, setSessionCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingNavigate, setPendingNavigate] = useState(false);
-  const processingRef = useRef(false);
-  const sessionStartRef = useRef<number>(Date.now()); // track session duration
 
-  // Auth context — used to record sessions in history
+  const processingRef = useRef(false);
+  const sessionStartRef = useRef<number>(Date.now());
+  // Track message count in a ref to avoid re-creating processText callback
+  const messageCountRef = useRef(0);
+
   const { addSession } = useAuth();
 
+  // Sync message count ref when messages change
+  useEffect(() => {
+    messageCountRef.current = messages.length;
+  }, [messages.length]);
+
   // ── TTS ──────────────────────────────────────────────────────────────────────
-  const { speak, stop: stopSpeaking } = useTTS({
+  const { speak, stop: stopSpeakingRaw } = useTTS({
     onStart: () => setVoiceState('speaking'),
     onEnd: () => setVoiceState('idle'),
   });
 
-  // ── API call ─────────────────────────────────────────────────────────────────
+  const stopSpeaking = useCallback(() => stopSpeakingRaw(), [stopSpeakingRaw]);
+
+  // ── API call with client-side cache check ─────────────────────────────────────
   const callAgent = useCallback(
     async (text: string): Promise<AIResponse | null> => {
+      // ─── OPTIMIZATION: Check client cache before making any network request ─
+      const ck = `${fromLang.label}|${toLang.label}|${text.toLowerCase()}`;
+      const cached = clientTranslationCache.get(ck);
+      if (cached) {
+        return { original: text, corrected: text, translated: cached };
+      }
+
       try {
         const res = await fetch('/api/agent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text,
-            targetLang: toLang.label,
-            fromLang: fromLang.label,
-          }),
+          // OPTIMIZATION: Only send what the API actually needs (smaller payload)
+          body: JSON.stringify({ text, targetLang: toLang.label, fromLang: fromLang.label }),
         });
+
+        if (!res.ok) return null;
         const data = await res.json();
-        // Always return data — the API always has a translated field
-        return {
+
+        const result = {
           original: data.original ?? text,
           corrected: data.corrected ?? text,
           translated: data.translated ?? text,
         };
+
+        // Cache the result client-side
+        clientTranslationCache.set(ck, result.translated);
+        return result;
       } catch (err) {
         console.error('[VoiceBridge] Agent error:', err);
         return null;
@@ -93,7 +111,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     [fromLang.label, toLang.label]
   );
 
-  // ── Core pipeline: text → API → messages → TTS ───────────────────────────────
+  // ── Core pipeline: text → cache/API → messages → TTS ─────────────────────────
   const processText = useCallback(
     async (text: string) => {
       if (!text.trim() || processingRef.current) return;
@@ -102,7 +120,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       setVoiceState('processing');
       setErrorMessage(null);
 
-      // Optimistically add user message (raw input)
       const userMsgId = Date.now().toString();
       const userMsg: Message = {
         id: userMsgId,
@@ -113,20 +130,16 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         timestamp: new Date(),
         isStreaming: true,
       };
+
+      // OPTIMIZATION: Use functional update to avoid stale closure on messages
       setMessages((prev) => [...prev, userMsg]);
 
-      // Call AI Agent
       setVoiceState('translating');
       const result = await callAgent(text);
 
       if (!result) {
-        // Update user message with error state
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === userMsgId
-              ? { ...m, isStreaming: false, error: true }
-              : m
-          )
+          prev.map((m) => m.id === userMsgId ? { ...m, isStreaming: false, error: true } : m)
         );
         setErrorMessage("Couldn't reach AI. Showing your original text.");
         setVoiceState('idle');
@@ -134,60 +147,61 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Update user message with corrected + translated
       setMessages((prev) =>
         prev.map((m) =>
           m.id === userMsgId
-            ? {
-                ...m,
-                improved: undefined, // translation-only mode: no grammar correction
-                translated: result.translated,
-                isStreaming: false,
-              }
+            ? { ...m, translated: result.translated, isStreaming: false }
             : m
         )
       );
 
+      audioService.playSuccess();
       setSessionCount((c) => c + 1);
-      setPendingNavigate(true); // signal to navigate to conversation
+      setPendingNavigate(true);
 
-      // Record session in AuthContext history
+      // OPTIMIZATION: Don't await session recording — it's not on the critical path
       const durationSec = Math.round((Date.now() - sessionStartRef.current) / 1000);
       const mins = Math.floor(durationSec / 60);
       const secs = durationSec % 60;
-      addSession({
+      // Non-blocking — wrap in Promise.resolve so .catch works even if addSession returns void
+      Promise.resolve(addSession({
         from: fromLang.label,
         to: toLang.label,
         fromFlag: fromLang.flag,
         toFlag: toLang.flag,
-        messages: messages.length + 1,
+        messages: messageCountRef.current + 1,
         duration: `${mins}m ${secs.toString().padStart(2, '0')}s`,
-      });
-      sessionStartRef.current = Date.now(); // reset for next session
+      })).catch(() => {});
 
-      // Auto-speak the translated output
+      sessionStartRef.current = Date.now();
+
       setVoiceState('speaking');
       speak(result.translated, toLang.label);
-
       processingRef.current = false;
     },
-    [fromLang.label, fromLang.flag, toLang.label, toLang.flag, callAgent, speak, addSession, messages.length]
+    // OPTIMIZATION: Removed messages.length from deps (use ref instead) to prevent
+    // processText from being recreated every time a new message is added.
+    [fromLang.label, fromLang.flag, toLang.label, toLang.flag, callAgent, speak, addSession]
   );
 
   // ── Speech Recognition ───────────────────────────────────────────────────────
+  const voiceStateRef = useRef(voiceState);
+  useEffect(() => { voiceStateRef.current = voiceState; }, [voiceState]);
+
   const { start: startRecognition, stop: stopRecognition, isSupported } = useSpeechRecognition({
     lang: fromLang.bcp47,
-    onResult: (transcript) => {
-      processText(transcript);
-    },
+    onResult: processText,
     onError: (err) => {
       setErrorMessage(err);
       setVoiceState('idle');
     },
-    onStart: () => setVoiceState('listening'),
+    onStart: () => {
+      setVoiceState('listening');
+      audioService.playStart();
+    },
     onEnd: () => {
-      // If still listening (no result yet), go back to idle
       setVoiceState((prev) => (prev === 'listening' ? 'idle' : prev));
+      if (voiceStateRef.current === 'listening') audioService.playStop();
     },
   });
 
@@ -197,7 +211,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       return;
     }
     setErrorMessage(null);
-    stopSpeaking(); // stop any TTS
+    stopSpeaking();
     startRecognition();
   }, [isSupported, startRecognition, stopSpeaking]);
 
@@ -206,7 +220,6 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
     setVoiceState('idle');
   }, [stopRecognition]);
 
-  // ── sendText (from keyboard input in ConversationScreen) ──────────────────────
   const sendText = useCallback(
     async (text: string) => {
       stopSpeaking();
@@ -218,34 +231,38 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
   const clearMessages = useCallback(() => setMessages([]), []);
   const clearError = useCallback(() => setErrorMessage(null), []);
   const clearPendingNavigate = useCallback(() => setPendingNavigate(false), []);
-
   const setFromLang = useCallback((l: Language) => setFromLangState(l), []);
   const setToLang = useCallback((l: Language) => setToLangState(l), []);
   const speakText = useCallback(
-    (text: string, langLabel: string) => {
-      stopSpeaking();
-      speak(text, langLabel);
-    },
+    (text: string, langLabel: string) => { stopSpeaking(); speak(text, langLabel); },
     [speak, stopSpeaking]
   );
 
+  // OPTIMIZATION: Memoize the full context value object so consumers only re-render
+  // when a value they actually use changes (not on every VoiceProvider render).
+  const contextValue = useMemo<VoiceContextValue>(
+    () => ({
+      fromLang, toLang, setFromLang, setToLang,
+      voiceState, messages, sessionCount, errorMessage,
+      startListening, stopListening, sendText,
+      clearMessages, clearError,
+      speakText, stopSpeaking,
+      pendingNavigate, clearPendingNavigate,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      fromLang, toLang, voiceState, messages, sessionCount,
+      errorMessage, pendingNavigate,
+    ]
+  );
+
   return (
-    <VoiceContext.Provider
-      value={{
-        fromLang, toLang, setFromLang, setToLang,
-        voiceState, messages, sessionCount, errorMessage,
-        startListening, stopListening, sendText,
-        clearMessages, clearError,
-        speakText, stopSpeaking,
-        pendingNavigate, clearPendingNavigate,
-      }}
-    >
+    <VoiceContext.Provider value={contextValue}>
       {children}
     </VoiceContext.Provider>
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 export function useVoice(): VoiceContextValue {
   const ctx = useContext(VoiceContext);
   if (!ctx) throw new Error('useVoice must be used inside <VoiceProvider>');

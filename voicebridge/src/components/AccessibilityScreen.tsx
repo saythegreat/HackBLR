@@ -1,7 +1,9 @@
-'use client';
+import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { Mic, Eye, Type, FileText, Moon, Volume2, Info, Languages, ZoomIn, Contrast } from 'lucide-react';
+import { Mic, Type, Volume2, Info, Languages, Contrast } from 'lucide-react';
+import { useVoice } from '@/context/VoiceContext';
+import { getUIStrings } from '@/lib/uiTranslations';
+import { formatNumber } from '@/lib/utils';
 
 interface ToggleOption {
   id: string;
@@ -12,95 +14,6 @@ interface ToggleOption {
   category: string;
   accentColor?: string;
 }
-
-const OPTIONS: ToggleOption[] = [
-  {
-    id: 'speech-correction',
-    icon: <Mic size={18} />,
-    label: 'Speech Correction',
-    description: 'Auto-fix grammar and pronunciation errors in real time',
-    defaultOn: true,
-    category: 'Voice',
-    accentColor: '#7c3aed',
-  },
-  {
-    id: 'auto-speak',
-    icon: <Volume2 size={18} />,
-    label: 'Auto-Speak Translation',
-    description: 'Automatically speak the translated output aloud after each translation',
-    defaultOn: true,
-    category: 'Voice',
-    accentColor: '#60a5fa',
-  },
-  {
-    id: 'slow-speech',
-    icon: <Languages size={18} />,
-    label: 'Slow Speech Mode',
-    description: 'Speak translated output at a slower rate for better clarity',
-    category: 'Voice',
-    accentColor: '#8b5cf6',
-  },
-  {
-    id: 'high-contrast',
-    icon: <Contrast size={18} />,
-    label: 'High Contrast Mode',
-    description: 'Increase visual contrast for low-vision users',
-    category: 'Display',
-    accentColor: '#6366f1',
-  },
-  {
-    id: 'large-text',
-    icon: <ZoomIn size={18} />,
-    label: 'Large Text Mode',
-    description: 'Increase all text sizes for easier reading',
-    category: 'Display',
-    accentColor: '#818cf8',
-  },
-  {
-    id: 'dark-mode',
-    icon: <Moon size={18} />,
-    label: 'Dark Mode',
-    description: 'Comfortable viewing in low-light environments (always active)',
-    defaultOn: true,
-    category: 'Display',
-    accentColor: '#a78bfa',
-  },
-  {
-    id: 'subtitles',
-    icon: <FileText size={18} />,
-    label: 'Live Subtitles',
-    description: 'Show real-time captions for all audio output',
-    defaultOn: true,
-    category: 'Accessibility',
-    accentColor: '#f59e0b',
-  },
-  {
-    id: 'audio-feedback',
-    icon: <Volume2 size={18} />,
-    label: 'Audio Feedback',
-    description: 'Auditory cues for button presses and actions',
-    defaultOn: true,
-    category: 'Accessibility',
-    accentColor: '#34d399',
-  },
-  {
-    id: 'dyslexia-font',
-    icon: <Type size={18} />,
-    label: 'Dyslexia-Friendly Font',
-    description: 'Use a font optimized for readers with dyslexia',
-    category: 'Accessibility',
-    accentColor: '#fb923c',
-  },
-  {
-    id: 'screen-reader',
-    icon: <Eye size={18} />,
-    label: 'Screen Reader Support',
-    description: 'Announce all UI changes to assistive screen reader technology',
-    defaultOn: true,
-    category: 'Accessibility',
-    accentColor: '#6366f1',
-  },
-];
 
 interface ToggleSwitchProps {
   id: string;
@@ -140,45 +53,103 @@ function ToggleSwitch({ id, isOn, onToggle, color = '#7c3aed' }: ToggleSwitchPro
 }
 
 const STORAGE_KEY = 'vb_accessibility_v1';
-const categories = ['All', 'Voice', 'Display', 'Accessibility'];
 
 export default function AccessibilityScreen() {
-  const [toggles, setToggles] = useState<Record<string, boolean>>(
-    Object.fromEntries(OPTIONS.map(o => [o.id, o.defaultOn ?? false]))
-  );
-  const [activeCategory, setActiveCategory] = useState('All');
+  const { fromLang } = useVoice();
+  const t = useMemo(() => getUIStrings(fromLang.label), [fromLang.label]);
 
-  // Load saved preferences
+  const categories = useMemo(() => [t.catAll, t.catVoice, t.catDisplay, t.catAccess], [t]);
+
+  const OPTIONS: ToggleOption[] = useMemo(() => [
+    {
+      id: 'speech-correction',
+      icon: <Mic size={18} />,
+      label: t.optSpeechCorr,
+      description: t.optSpeechCorrDesc,
+      defaultOn: true,
+      category: t.catVoice,
+      accentColor: '#7c3aed',
+    },
+    {
+      id: 'auto-speak',
+      icon: <Volume2 size={18} />,
+      label: t.optAutoSpeak,
+      description: t.optAutoSpeakDesc,
+      defaultOn: true,
+      category: t.catVoice,
+      accentColor: '#60a5fa',
+    },
+    {
+      id: 'slow-speech',
+      icon: <Languages size={18} />,
+      label: t.optSlowSpeech,
+      description: t.optSlowSpeechDesc,
+      category: t.catVoice,
+      accentColor: '#8b5cf6',
+    },
+    {
+      id: 'high-contrast',
+      icon: <Contrast size={18} />,
+      label: t.optHighContrast,
+      description: t.optHighContrastDesc,
+      category: t.catDisplay,
+      accentColor: '#6366f1',
+    },
+    {
+      id: 'audio-feedback',
+      icon: <Volume2 size={18} />,
+      label: t.optAudioFeedback,
+      description: t.optAudioFeedbackDesc,
+      defaultOn: true,
+      category: t.catAccess,
+      accentColor: '#34d399',
+    },
+    {
+      id: 'dyslexia-font',
+      icon: <Type size={18} />,
+      label: t.optDyslexiaFont,
+      description: t.optDyslexiaFontDesc,
+      category: t.catAccess,
+      accentColor: '#fb923c',
+    }
+  ], [t]);
+
+  const [toggles, setToggles] = useState<Record<string, boolean>>({});
+  const [activeCategory, setActiveCategory] = useState(t.catAll);
+
+  // Initialize toggles from defaults
   useEffect(() => {
+    const initial = Object.fromEntries(OPTIONS.map(o => [o.id, o.defaultOn ?? false]));
+    
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setToggles(prev => ({ ...prev, ...parsed }));
+        setToggles({ ...initial, ...parsed });
+      } else {
+        setToggles(initial);
       }
-    } catch {/* ignore */}
-  }, []);
+    } catch {
+      setToggles(initial);
+    }
+  }, [OPTIONS]);
 
-  // Apply real effects when toggles change
+  // Handle lang change for category reset
   useEffect(() => {
-    // Save to localStorage
+    setActiveCategory(t.catAll);
+  }, [t.catAll]);
+
+  useEffect(() => {
+    if (Object.keys(toggles).length === 0) return;
+
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(toggles)); } catch {/* ignore */}
 
-    // High Contrast
     if (toggles['high-contrast']) {
       document.body.style.filter = 'contrast(1.25) brightness(1.05)';
     } else {
       document.body.style.filter = '';
     }
 
-    // Large Text — class on <html>
-    if (toggles['large-text']) {
-      document.documentElement.classList.add('large-text');
-    } else {
-      document.documentElement.classList.remove('large-text');
-    }
-
-    // Dyslexia font
     if (toggles['dyslexia-font']) {
       document.body.style.fontFamily = 'Arial, Helvetica, sans-serif';
       document.body.style.letterSpacing = '0.05em';
@@ -189,7 +160,6 @@ export default function AccessibilityScreen() {
       document.body.style.wordSpacing = '';
     }
 
-    // TTS rate (stored, read by useTTS)
     if (toggles['slow-speech']) {
       localStorage.setItem('vb_tts_rate', '0.65');
     } else {
@@ -197,16 +167,13 @@ export default function AccessibilityScreen() {
     }
   }, [toggles]);
 
-  const flipToggle = (id: string) => {
-    setToggles(prev => ({ ...prev, [id]: !prev[id] }));
-  };
+  const flipToggle = (id: string) => setToggles(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const filteredOptions = activeCategory === 'All' ? OPTIONS : OPTIONS.filter(o => o.category === activeCategory);
+  const filteredOptions = activeCategory === t.catAll ? OPTIONS : OPTIONS.filter(o => o.category === activeCategory);
   const enabledCount = Object.values(toggles).filter(Boolean).length;
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -214,16 +181,17 @@ export default function AccessibilityScreen() {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>Accessibility</h1>
-            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Customize for your needs</p>
+            <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 4 }}>{t.accessTitle}</h1>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>{t.accessSubtitle}</p>
           </div>
-          <div className="glass" style={{ padding: '8px 14px', borderRadius: 12, textAlign: 'center' }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: '#a78bfa' }}>{enabledCount}</div>
-            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Active</div>
+          <div className="glass" style={{ padding: '8px 14px', borderRadius: 12, textAlign: 'center', minWidth: 60 }}>
+            <div style={{ fontSize: 20, fontWeight: 700, color: '#a78bfa' }}>
+              {formatNumber(enabledCount, fromLang.label)}
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{t.activeLabel}</div>
           </div>
         </div>
 
-        {/* Category Filter */}
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
           {categories.map(cat => (
             <motion.button
@@ -244,7 +212,6 @@ export default function AccessibilityScreen() {
         </div>
       </motion.div>
 
-      {/* Info Banner */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -258,12 +225,11 @@ export default function AccessibilityScreen() {
         }}>
           <Info size={16} style={{ color: '#a78bfa', flexShrink: 0 }} />
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            Settings are saved automatically and applied immediately.
+            {t.autoSaved}
           </p>
         </div>
       </motion.div>
 
-      {/* Toggle List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px 100px' }}>
         {filteredOptions.map((option, i) => (
           <motion.div
@@ -283,7 +249,6 @@ export default function AccessibilityScreen() {
               }}
               onClick={() => flipToggle(option.id)}
             >
-              {/* Icon */}
               <motion.div
                 animate={{ scale: toggles[option.id] ? 1.1 : 1 }}
                 style={{
@@ -297,19 +262,17 @@ export default function AccessibilityScreen() {
                 {option.icon}
               </motion.div>
 
-              {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                   <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{option.label}</span>
-                  <span className={`pill pill-${toggles[option.id] ? 'green' : 'purple'}`} style={{ fontSize: 9 }}>
-                    {toggles[option.id] ? 'On' : 'Off'}
+                  <span className={`pill pill-${toggles[option.id] ? 'green' : 'purple'}`} style={{ fontSize: 10 }}>
+                    {toggles[option.id] ? t.toggleOn : t.toggleOff}
                   </span>
                 </div>
                 <p style={{ fontSize: 12, color: 'var(--text-muted)', lineHeight: 1.4 }}>{option.description}</p>
                 <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4, opacity: 0.6 }}>{option.category}</div>
               </div>
 
-              {/* Toggle */}
               <div onClick={e => e.stopPropagation()}>
                 <ToggleSwitch
                   id={`toggle-${option.id}`}
@@ -322,7 +285,6 @@ export default function AccessibilityScreen() {
           </motion.div>
         ))}
 
-        {/* Reset button */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -335,7 +297,7 @@ export default function AccessibilityScreen() {
             style={{ width: '100%', padding: '14px', fontSize: 13, fontWeight: 500 }}
             onClick={() => setToggles(Object.fromEntries(OPTIONS.map(o => [o.id, o.defaultOn ?? false])))}
           >
-            Reset to Defaults
+            {t.resetDefaults}
           </button>
         </motion.div>
       </div>
