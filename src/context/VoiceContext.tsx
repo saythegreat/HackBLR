@@ -15,6 +15,7 @@ import { useTTS } from '@/hooks/useTTS';
 import type { VoiceState, Message, AIResponse } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 import { audioService } from '@/lib/audioService';
+import { interpretSlang } from '@/lib/slangInterpreter';
 
 // ─── Context Shape ─────────────────────────────────────────────────────────────
 interface VoiceContextValue {
@@ -132,9 +133,11 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
 
   // ── Core pipeline: text → cache/API → messages → TTS ─────────────────────────
   const processText = useCallback(
-    async (text: string) => {
-      if (!text.trim() || processingRef.current) return;
+    async (rawText: string) => {
+      if (!rawText.trim() || processingRef.current) return;
       processingRef.current = true;
+
+      const text = interpretSlang(rawText); // Translate Gen Z phrases first
 
       setVoiceState('processing');
       setErrorMessage(null);
@@ -143,7 +146,7 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       const userMsg: Message = {
         id: userMsgId,
         role: 'user',
-        original: text,
+        original: rawText, // Show the original slang in the UI
         lang: fromLang.label,
         targetLang: toLang.label,
         timestamp: new Date(),
@@ -154,7 +157,15 @@ export function VoiceProvider({ children }: { children: ReactNode }) {
       setMessages((prev) => [...prev, userMsg]);
 
       setVoiceState('translating');
-      const result = await callAgent(text);
+      
+      let result;
+      // If doing English-to-English and slang was caught, we can skip the agent 
+      // or just use the interpreted text directly as the translation.
+      if (fromLang.label === 'English' && toLang.label === 'English' && text !== rawText) {
+        result = { original: rawText, corrected: text, translated: text };
+      } else {
+        result = await callAgent(text);
+      }
 
       if (!result) {
         setMessages((prev) =>

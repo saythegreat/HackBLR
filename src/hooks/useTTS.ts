@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { TTS_LANGUAGE_MAP } from '@/lib/languages';
+import { TTS_LANGUAGE_MAP, LANGUAGES } from '@/lib/languages';
 
 interface TTSOptions {
   onStart?: () => void;
@@ -56,7 +56,11 @@ export function useTTS({ onStart, onEnd }: TTSOptions = {}) {
       stop();
 
       const bcp47    = TTS_LANGUAGE_MAP[languageLabel] || 'en-US';
-      const langCode = bcp47.split('-')[0];
+      
+      // OPTIMIZATION: Use the specific ttsLang if provided in the language definition
+      const langDef  = LANGUAGES.find(l => l.label === languageLabel);
+      const ttsLang  = langDef?.ttsLang || bcp47;
+      const langCode = ttsLang.split('-')[0];
 
       // ─── OPTIMIZATION: Read localStorage once, not on every speak ─────────
       const voiceId = typeof window !== 'undefined'

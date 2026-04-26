@@ -22,7 +22,7 @@ export const LANGUAGES: Language[] = [
   { code: 'ur',   label: 'Urdu',               flag: '🇮🇳', bcp47: 'ur-IN' },
   { code: 'or',   label: 'Odia',               flag: '🇮🇳', bcp47: 'or-IN' },
   { code: 'as',   label: 'Assamese',           flag: '🇮🇳', bcp47: 'as-IN' },
-  { code: 'kok',  label: 'Konkani',            flag: '🇮🇳', bcp47: 'kok-IN' },
+  { code: 'kok',  label: 'Konkani',            flag: '🇮🇳', bcp47: 'kok-IN', ttsLang: 'gom' },
   { code: 'mai',  label: 'Maithili',           flag: '🇮🇳', bcp47: 'mai-IN' },
   { code: 'sd',   label: 'Sindhi',             flag: '🇮🇳', bcp47: 'sd-IN' },
   { code: 'doi',  label: 'Dogri',              flag: '🇮🇳', bcp47: 'doi-IN' },

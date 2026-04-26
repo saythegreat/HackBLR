@@ -8,11 +8,11 @@ import { LANGUAGES as LANG_LIST } from '@/lib/languages';
 import { getUIStrings } from '@/lib/uiTranslations';
 
 const EMERGENCY_PHRASES: Record<string, string>[] = [
-  { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助', bn: 'আমার সাহায্য দরকার', ta: 'எனக்கு உதவி வேண்டும்', te: 'నాకు సహాయం కావాలి', kn: 'ನನಗೆ ಸಹಾಯ ಬೇಕು', ml: 'എനിക്ക് സഹായം വേണം', mr: 'मला मदत हवी आहे', gu: 'મને મદદ જોઈએ છે', pa: 'ਮੈਨੂੰ ਮਦਦ ਚਾਹੀਦੀ ਹੈ', ur: 'مجھے مدد چاہیے', fr: "J'ai besoin d'aide", de: 'Ich brauche Hilfe', ja: '助けてください', ko: '도움이 필요합니다', pt: 'Preciso de ajuda', ru: 'Мне нужна помощь', it: 'Ho bisogno di aiuto' },
-  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llame a una ambulancia', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车', bn: 'অ্যাম্বুলেন্স ডাকুন', ta: 'ஆம்புலன்ஸ் அழைக்கவும்', te: 'అంబులెన్స్ పిలవండి', kn: 'ಅಂಬುಲೆನ್ಸ್ ಕರೆಯಿರಿ', ml: 'ആംബുലൻസ് വിളിക്കൂ', mr: 'रुग्णवाहिका बोलवा', gu: 'એમ્બ્યુલન્સ બોલાવો', pa: 'ਐਂਬੂਲੈਂਸ ਬੁਲਾਓ', ur: 'ایمبولینس بلائیں', fr: 'Appelez une ambulance', de: 'Rufen Sie einen Krankenwagen', ja: '救急車を呼んでください', ko: '구급차를 불러주세요', pt: 'Chame uma ambulância', ru: 'Вызовите скорую', it: 'Chiama un\'ambulanza' },
-  { en: 'I am lost', hi: 'मैं खो गया हूँ', es: 'Estoy perdido', ar: 'لقد ضعت', zh: '我迷路了', bn: 'আমি হারিয়ে গেছি', ta: 'நான் தொலைந்துவிட்டேன்', te: 'నేను దారి తప్పాను', kn: 'ನಾನು ಕಳೆದುಹೋಗಿದ್ದೇನೆ', ml: 'ഞാൻ വഴിതെറ്റി', mr: 'मी हरवलो आहे', gu: 'હું ખોવાઈ ગયો છું', pa: 'ਮੈਂ ਗੁੰਮ ਹੋ ਗਿਆ ਹਾਂ', ur: 'میں کھو گیا ہوں', fr: 'Je suis perdu', de: 'Ich habe mich verirrt', ja: '道に迷いました', ko: '길을 잃었어요', pt: 'Estou perdido', ru: 'Я потерялся', it: 'Mi sono perso' },
-  { en: 'I cannot breathe', hi: 'मुझे सांस नहीं आ रही', es: 'No puedo respirar', ar: 'لا أستطيع التنفس', zh: '我无法呼吸', bn: 'আমি শ্বাস নিতে পারছি না', ta: 'என்னால் சுவாசிக்க முடியவில்லை', te: 'నాకు ఊపిరి ఆడటం లేదు', kn: 'ನನಗೆ ಉಸಿರಾಡಲು ಆಗುತ್ತಿಲ್ಲ', ml: 'എനിക്ക് ശ്വസിക്കാൻ കഴിയുന്നില്ല', mr: 'मला श्वास घेता येत नाही', gu: 'મને શ્વાસ લેવામાં તકલીફ થાય છે', pa: 'ਮੈਨੂੰ ਸਾਹ ਨਹੀਂ ਆ ਰਿਹਾ', ur: 'مجھے سانس نہیں آ رہی', fr: 'Je ne peux pas respirer', de: 'Ich kann nicht atmen', ja: '息ができません', ko: '숨을 쉴 수가 없어요', pt: 'Não consigo respirar', ru: 'Я не могу дышать', it: 'Non riesco a respirare' },
-  { en: 'I have an allergy', hi: 'मुझे एलर्जी है', es: 'Tengo una alergia', ar: 'لدي حساسية', zh: '我有过敏', bn: 'আমার অ্যালার্জি আছে', ta: 'எனக்கு ஒவ்வாமை உள்ளது', te: 'నాకు అలర్జీ ఉంది', kn: 'ನನಗೆ ಅಲರ್ಜಿ ಇದೆ', ml: 'എനിക്ക് അലർജിയുണ്ട്', mr: 'मला ऍलर्जी आहे', gu: 'મને એલર્જી છે', pa: 'ਮੈਨੂੰ ਐਲਰਜੀ ਹੈ', ur: 'مجھے الرجی ہے', fr: 'J\'ai une allergie', de: 'Ich habe eine Allergie', ja: 'アレルギーがあります', ko: '알레르기가 있습니다', pt: 'Tenho uma alergia', ru: 'У меня аллергия', it: 'Ho un\'allergia' },
+  { en: 'I need help', hi: 'मुझे मदद चाहिए', es: 'Necesito ayuda', ar: 'أحتاج مساعدة', zh: '我需要帮助', bn: 'আমার সাহায্য দরকার', ta: 'எனக்கு உதவி வேண்டும்', te: 'నాకు సహాయం కావాలి', kn: 'ನನಗೆ ಸಹಾಯ ಬೇಕು', ml: 'എനിക്ക് സഹായം വേണം', mr: 'मला मदत हवी आहे', gu: 'મને મદદ જોઈએ છે', pa: 'ਮੈਨੂੰ ਮਦਦ ਚਾਹੀਦੀ ਹੈ', ur: 'مجھے مدد چاہیے', fr: "J'ai besoin d'aide", de: 'Ich brauche Hilfe', ja: '助けてください', ko: '도움이 필요합니다', pt: 'Preciso de ajuda', ru: 'Мне нужна помощь', it: 'Ho bisogno di aiuto', bg: 'Нуждая се от помощ' },
+  { en: 'Call an ambulance', hi: 'एम्बुलेंस बुलाओ', es: 'Llame a una ambulancia', ar: 'اتصل بسيارة إسعاف', zh: '叫救护车', bn: 'অ্যাম্বুলেন্স ডাকুন', ta: 'ஆம்புலன்ஸ் அழைக்கவும்', te: 'అంబులెన్స్ పిలవండి', kn: 'ಅಂಬುಲೆನ್ಸ್ ಕರೆಯಿರಿ', ml: 'ആംബുലൻസ് വിളിക്കൂ', mr: 'रुग्णवाहिका बोलवा', gu: 'એમ્બ્યુલન્સ બોલાવો', pa: 'ਐਂਬੂਲੈਂਸ ਬੁਲਾਓ', ur: 'ایمبولینس بلائیں', fr: 'Appelez une ambulance', de: 'Rufen Sie einen Krankenwagen', ja: '救急車を呼んでください', ko: '구급차를 불러주세요', pt: 'Chame uma ambulância', ru: 'Вызовите скорую', it: 'Chiama un\'ambulanza', bg: 'Повикайте линейка' },
+  { en: 'I am lost', hi: 'मैं खो गया हूँ', es: 'Estoy perdido', ar: 'لقد ضعت', zh: '我迷路了', bn: 'আমি হারিয়ে গেছি', ta: 'நான் தொலைந்துவிட்டேன்', te: 'నేను దారి తప్పాను', kn: 'ನಾನು ಕಳೆದುಹೋಗಿದ್ದೇನೆ', ml: 'ഞാൻ വഴിതെറ്റി', mr: 'मी हरवलो आहे', gu: 'હું ખોવાઈ ગયો છું', pa: 'ਮੈਂ ਗੁੰਮ ਹੋ ਗਿਆ ਹਾਂ', ur: 'میں کھو گیا ہوں', fr: 'Je suis perdu', de: 'Ich habe mich verirrt', ja: '道に迷いました', ko: '길을 잃었어요', pt: 'Estoy perdido', ru: 'Я потерялся', it: 'Mi sono perso', bg: 'Загубих се' },
+  { en: 'I cannot breathe', hi: 'मुझे सांस नहीं आ रही', es: 'No puedo respirar', ar: 'لا أستطيع التنفس', zh: '我无法呼吸', bn: 'আমি শ্বাস নিতে পারছি না', ta: 'என்னால் சுவாசிக்க முடியவில்லை', te: 'నాకు ఊపిరి ఆడటం లేదు', kn: 'ನನಗೆ ಉसीರಾಡಲು ಆಗುತ್ತಿಲ್ಲ', ml: 'എനിക്ക് ശ്വസിക്കാൻ കഴിയുന്നില്ല', mr: 'मला श्वास घेता येत नाही', gu: 'મને શ્વાસ લેવામાં તકલીફ થાય છે', pa: 'ਮੈਨੂੰ ਸਾਹ ਨਹੀਂ ਆ ਰਿਹਾ', ur: 'مجھے سانس نہیں آ رہی', fr: 'Je ne peux pas respirer', de: 'Ich kann nicht atmen', ja: '息ができません', ko: '숨을 쉴 수가 없어요', pt: 'Não consigo respirar', ru: 'Я не могу дышать', it: 'Non riesco a respirare', bg: 'Не мога да дишам' },
+  { en: 'I have an allergy', hi: 'मुझे एलर्जी है', es: 'Tengo una alergia', ar: 'لدي حساسية', zh: '我有过敏', bn: 'আমার অ্যালার্জি আছে', ta: 'எனக்கு ஒவ்வாமை உள்ளது', te: 'నాకు అలర్జీ ఉంది', kn: 'ನನಗೆ ಅಲರ್ಜಿ ಇದೆ', ml: 'എനിക്ക് അലർജിയുണ്ട്', mr: 'मला ऍलर्जी आहे', gu: 'મને એલર્જી છે', pa: 'ਮੈਨੂੰ ਐਲਰਜੀ ਹੈ', ur: 'مجھے الرجی ہے', fr: 'J\'ai une allergie', de: 'Ich habe eine Allergie', ja: 'アレルギーがあります', ko: '알레르기가 있습니다', pt: 'Tenho uma alergia', ru: 'У меня аллергия', it: 'Ho un\'allergia', bg: 'Имам алергия' },
 ];
 
 
@@ -28,12 +28,14 @@ export default function EmergencyScreen() {
   
   useEffect(() => {
     if (fromLang?.code) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveLang(fromLang.code);
     }
   }, [fromLang?.code]);
+
+  const activeLangLabel = LANG_LIST.find(l => l.code === activeLang)?.label || 'English';
+  const activeUi = getUIStrings(activeLangLabel);
+  const englishUi = getUIStrings('English');
   
-  // Use TTS engine to play the emergency phrases
   const { speak } = useTTS({
     onStart: () => {},
     onEnd: () => setSpeakingPhrase(null),
@@ -62,7 +64,6 @@ export default function EmergencyScreen() {
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,15 +101,12 @@ export default function EmergencyScreen() {
       </motion.div>
 
       <div style={{ flex: 1, padding: '16px 20px 100px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-
-        {/* Main Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}
         >
-          {/* Call Help */}
           <motion.button
             id="call-help-btn"
             whileTap={{ scale: 0.94 }}
@@ -132,7 +130,6 @@ export default function EmergencyScreen() {
             {isCallActive ? ui.emergencyCalling : ui.emergencyCallHelp}
           </motion.button>
 
-          {/* Send Location */}
           <motion.button
             id="send-location-btn"
             whileTap={{ scale: 0.94 }}
@@ -155,7 +152,6 @@ export default function EmergencyScreen() {
           </motion.button>
         </motion.div>
 
-        {/* Speak Emergency Message */}
         <motion.button
           id="speak-emergency-btn"
           whileTap={{ scale: 0.97 }}
@@ -178,7 +174,6 @@ export default function EmergencyScreen() {
           {isRecording ? ui.emergencyRecording : ui.emergencySpeakMsg}
         </motion.button>
 
-        {/* Language Selector */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -217,7 +212,6 @@ export default function EmergencyScreen() {
           </div>
         </motion.div>
 
-        {/* Emergency Phrases */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -227,8 +221,8 @@ export default function EmergencyScreen() {
             {ui.emergencyQuickPhrases}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {EMERGENCY_PHRASES.map((phraseObj, i) => {
-              const translatedPhrase = phraseObj[activeLang] || phraseObj.en;
+            {activeUi.quickPhrases.map((translatedPhrase, i) => {
+              const englishPhrase = englishUi.quickPhrases[i] || '';
               return (
               <motion.button
                 id={`phrase-${i}`}
@@ -256,8 +250,8 @@ export default function EmergencyScreen() {
                   <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
                     {translatedPhrase}
                   </div>
-                  {translatedPhrase !== phraseObj.en && (
-                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{phraseObj.en}</div>
+                  {translatedPhrase !== englishPhrase && (
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{englishPhrase}</div>
                   )}
                 </div>
                 <div style={{ color: speakingPhrase === translatedPhrase ? '#f87171' : 'var(--text-muted)' }}>
@@ -275,7 +269,6 @@ export default function EmergencyScreen() {
           </div>
         </motion.div>
 
-        {/* Safety Notice */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -292,7 +285,6 @@ export default function EmergencyScreen() {
           </p>
         </motion.div>
 
-        {/* Privacy Policy */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -311,7 +303,6 @@ export default function EmergencyScreen() {
             </p>
           </div>
         </motion.div>
-
       </div>
     </div>
   );
