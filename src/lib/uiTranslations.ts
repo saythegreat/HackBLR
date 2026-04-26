@@ -3093,7 +3093,7 @@ const BE: UIStrings = {
   loginActionFailed: 'Дзеянне не ўдалося', loginEmailNotConfirmed: 'Email не пацверджаны', loginCheckMail: 'Праверце пошту',
   loginSentCode: 'Мы адправілі 6-значны код', loginEnterCode: 'Увядзіце код', loginVerifyContinue: 'Пацвердзіць і працягнуць',
   loginWrongEmail: 'Няправільны email? Назад', loginNoAccount: 'Няма акаўнта?', loginAlreadyAccount: 'Ужо ёсць акаўнт?',
-  loginSignUpFree: 'Рэгістрацыя бясплатна', loginSignInAction: 'Увайсці', loginStartBreaking: 'Пачніце разбураць моўныя бар''еры сёння.',
+  loginSignUpFree: 'Рэгістрацыя бясплатна', loginSignInAction: 'Увайсці', loginStartBreaking: 'Пачніце разбураць моўныя бар\'еры сёння.',
   loginHistoryPro: 'Увайдзіце для доступу да гісторыі і Pro функцый.',
   emergencyActive: 'Актыўна — Дапамога запытана', emergencyCallHelp: 'Выклікаць дапамогу', emergencyCalling: 'Тэлефануем 112…',
   emergencySendLocation: 'Адправіць месцазнаходжанне', emergencySent: 'Адпраўлена!', emergencySpeakMsg: 'Прачытаць экстраннае паведамленне',
