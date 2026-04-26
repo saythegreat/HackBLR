@@ -58,7 +58,7 @@ interface AgentResponse {
 
 // ─── Language → locale map ──────────────────────────────────────────────────────
 const LANG_TO_LOCALE: Record<string, string> = {
-  'Phrases (Idioms)': 'en', English: 'en', Hindi: 'hi', Bengali: 'bn', Marathi: 'mr', Gujarati: 'gu',
+  'Idioms': 'en', English: 'en', Hindi: 'hi', Bengali: 'bn', Marathi: 'mr', Gujarati: 'gu',
   Punjabi: 'pa', Urdu: 'ur', Odia: 'or', Assamese: 'as', Konkani: 'kok',
   Maithili: 'mai', Sindhi: 'sd', Dogri: 'doi', Sanskrit: 'sa', Telugu: 'te',
   Tamil: 'ta', Kannada: 'kn', Malayalam: 'ml', Manipuri: 'mni', Bodo: 'brx',
@@ -84,7 +84,7 @@ async function translateGemini(text: string, from: string, to: string): Promise<
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
-  const prompt = to === 'Phrases (Idioms)'
+  const prompt = to === 'Idioms'
     ? `You are an expert interpreter. The following text in ${from} may contain phrases, slang, or idioms. Convert it into its clear, literal, and standard English meaning. Return ONLY the interpreted meaning, nothing else.\n\nText: ${text}`
     : `Translate from ${from} to ${to}. Return ONLY the translated text, nothing else.\n\nText: ${text}`;
 

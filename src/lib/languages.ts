@@ -13,8 +13,8 @@ export const LANGUAGES: Language[] = [
   // ── English ───────────────────────────────────────────────────────────────
   { code: 'en',   label: 'English',            flag: '🇬🇧', bcp47: 'en-US' },
 
-  // ── Phrases & Idioms ──────────────────────────────────────────────────────
-  { code: 'phrases', label: 'Phrases (Idioms)', flag: '🧩', bcp47: 'en-US' },
+  // ── Idioms ────────────────────────────────────────────────────────────────
+  { code: 'idioms', label: 'Idioms', flag: '🧩', bcp47: 'en-US' },
 
   // ── Official Indian Languages (22 scheduled) ──────────────────────────────
   { code: 'hi',   label: 'Hindi',              flag: '🇮🇳', bcp47: 'hi-IN' },
